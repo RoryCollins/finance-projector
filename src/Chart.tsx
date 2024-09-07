@@ -1,30 +1,29 @@
-import React from 'react';
 import {
     ComposedChart,
     Line,
     Area,
     XAxis,
     YAxis,
-    CartesianGrid,
     Tooltip,
     Legend,
-    DefaultLegendContent,
     ResponsiveContainer,
 } from 'recharts';
-import { percentiles } from './mathstuff';
 
-export default function Chart() {
-    const data = percentiles().map((x, i) => { return { age: i, percentiles: [x.percentile10, x.percentile90], median: x.median } })
-    console.log(data);
+export default function Chart({chartData}: any) {
+    const data = chartData.map((x:any, i:number) => { return { age: x.age, percentiles: [x.percentile10, x.percentile90], median: x.median } })
     return (
-        // <ResponsiveContainer width="100%" height="100%">
-            <div>
+        <div>
+            <ResponsiveContainer width="100%" height={400}>
                 <ComposedChart
                     width={900}
                     height={400}
+                    margin={{
+                        left: 200,
+                        right:200,
+                    }}
                     data={data}>
-                    <XAxis dataKey="age" />
-                    <YAxis width={100} />
+                    <XAxis dataKey="age" name="Age"/>
+                    <YAxis label={"Value"} />
                     <Area
                         type="monotone"
                         dataKey="percentiles"
@@ -35,9 +34,12 @@ export default function Chart() {
                         activeDot={false}
                     />
                     <Line type="natural" dataKey="median" stroke="#ff00ff" dot={false} connectNulls />
+                    <Legend />
+                    
+                    
                     <Tooltip/>
                 </ComposedChart>
-            </div>
-        // </ResponsiveContainer>
+            </ResponsiveContainer>
+        </div>
     );
 }
