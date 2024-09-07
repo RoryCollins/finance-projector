@@ -7,10 +7,12 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
+    ReferenceLine,
 } from 'recharts';
+import { SimulationResults } from './interfaces';
 
-export default function Chart({chartData}: any) {
-    const data = chartData.map((x:any, i:number) => { return { age: x.age, percentiles: [x.percentile10, x.percentile90], median: x.median } })
+export default function Chart({chartData}: {chartData: SimulationResults}) {
+    const data = chartData.annualData.map((x:any) => { return { age: x.age, percentiles: [x.percentile10, x.percentile90], median: x.median } })
     return (
         <div>
             <ResponsiveContainer width="100%" height={400}>
@@ -34,7 +36,9 @@ export default function Chart({chartData}: any) {
                         activeDot={false}
                     />
                     <Line type="natural" dataKey="median" stroke="#ff00ff" dot={false} connectNulls />
+                    <ReferenceLine x={chartData.medianRetirementAge} stroke='blue' width={2} />
                     <Legend />
+
                     
                     
                     <Tooltip/>

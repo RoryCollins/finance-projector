@@ -1,5 +1,5 @@
 import _ from "underscore";
-import { SimulationData, StatisticalModel } from "./interfaces";
+import { SimulationData, SimulationResults, StatisticalModel as StatisticalDistributionData } from "./interfaces";
 
 function BoxMullerTransform(): number {
     const u1 = Math.random();
@@ -18,60 +18,61 @@ function FiftyNormallyDistributedRandomNumbers(mean: number, standardDeviation: 
     return Array.from({ length: 50 }, () => GetNormallyDistributedRandomNumber(mean, standardDeviation));
 }
 
-export interface SimulationResults{
-
-}
-
 export default class SimulationRunner {
     readonly age: number;
     readonly initialValue: number;
     readonly annualContribution: number;
     readonly annualDrawdown: number;
-    readonly statisticalData: StatisticalModel;
+    readonly distributionData: StatisticalDistributionData;
+    readonly swr: number;
 
     constructor(
         { age, initialValue, annualContribution, annualDrawdown }: SimulationData,
-        statisticalModel: StatisticalModel) {
+        distributionData: StatisticalDistributionData) {
         this.age = age;
         this.initialValue = initialValue;
         this.annualContribution = annualContribution;
         this.annualDrawdown = annualDrawdown;
-
-        this.statisticalData = statisticalModel;
+        this.swr = 0.04
+        this.distributionData = distributionData;
     }
 
-    Run = () => {
-        var scenarios = this.OneThousandScenarios();
+    Run = (): SimulationResults => {
+        const s = this.OneThousandScenarios();
+        const scenarios = s.map(it => it.vals);
+        const medianRetirementAge = this.age + s.map(it => it.retirementAge).sort()[s.length * .5]
         const t = _.zip(...scenarios).map(it => it.sort((a, b) => a - b))
-        return t.map(year => {
+        const annualData = t.map((year, i) => {
             return {
+                age: this.age+i,
                 percentile90: year[year.length * .9],
                 percentile10: year[year.length * .1],
                 median: year[year.length * .5]
             }
         });
+        return { annualData, medianRetirementAge };
     }
 
-    private OneThousandScenarios = () : number[][] => {
+    private OneThousandScenarios = (): { vals: number[], retirementAge: number }[] => {
         return Array.from({ length: 1000 }, () => this.OneScenario())
     }
 
-    private OneScenario = (): number[] => {
-        const returns = FiftyNormallyDistributedRandomNumbers(this.statisticalData.mean, this.statisticalData.standardDeviation);
-        const f =  returns.reduce((acc: Array<{value: number, retired: boolean}>, x: number) => {
-            let {value, retired} = acc[acc.length-1];
+    private OneScenario = (): { vals: number[], retirementAge: number } => {
+        const returns = FiftyNormallyDistributedRandomNumbers(this.distributionData.mean, this.distributionData.standardDeviation);
+        const f = returns.reduce((acc: Array<{ value: number, retired: boolean }>, x: number) => {
+            let { value, retired } = acc[acc.length - 1];
             return [...acc, this.progressYear(value, x, retired)]
-            }, [{value: this.initialValue, retired: false}]);
-        return f.map(it => it.value);
+        }, [{ value: this.initialValue, retired: false }]);
+        return { vals: f.map(it => it.value), retirementAge: f.findIndex(d => d.retired) };
     }
 
     private progressYear = (previousValue: number, interest: number, retired: boolean) => {
-        if(previousValue >= this.annualDrawdown * 25){
+        if (previousValue >= this.annualDrawdown / this.swr) {
             retired = true;
         }
 
         var delta = retired ? -this.annualDrawdown : this.annualContribution;
 
-        return {value:(previousValue + delta) * interest, retired}
+        return { value: (previousValue + delta) * interest, retired }
     }
 }

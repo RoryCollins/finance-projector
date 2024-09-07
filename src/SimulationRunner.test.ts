@@ -23,7 +23,7 @@ it("A simulation with no growth, variance or contribution does not grow", () => 
     const runner = new SimulationRunner(
         { age: 36, initialValue, annualContribution: 0, annualDrawdown: 0 },
         NO_GROWTH);
-    const results = runner.Run();
+    const results = runner.Run().annualData;
     expect(results[results.length-1].median).toEqual(initialValue)
 });
 
@@ -31,7 +31,7 @@ it("A simulation with sufficient initialValue retires and draws down", () => {
     const runner = new SimulationRunner(
         { age: 36, initialValue: 1000000, annualContribution: 0, annualDrawdown: 1000 },
         NO_GROWTH);
-    const results = runner.Run();
+    const results = runner.Run().annualData;
     expect(results[results.length-1].median).toEqual(950000)
 });
 
@@ -39,9 +39,9 @@ it("A simulation reaches retirement and draws down", () => {
     const drawdown = 50000
 
     const runner = new SimulationRunner(
-        { age: 36, initialValue: 0, annualContribution: drawdown, annualDrawdown: drawdown },
+        { age: 0, initialValue: 0, annualContribution: drawdown, annualDrawdown: drawdown },
         NO_GROWTH);
-    const results = runner.Run();
-    console.log(results);
-    expect(results[results.length-1].median).toEqual(0)
+    const {annualData, medianRetirementAge} = runner.Run();
+    expect(annualData[annualData.length-1].median).toEqual(0);
+    expect(medianRetirementAge).toEqual(26);
 });

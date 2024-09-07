@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import './App.css';
 import Chart from './Chart';
-import ChartData from './ChartData';
 import { TextField, Button, Box } from '@mui/material';
 import SimulationRunner from './SimulationRunner';
+import { SimulationResults } from './interfaces';
+// import { ChartData } from './interfaces';
 
 interface StateData {
-  chartData : ChartData[],
+  simulationResults? : SimulationResults,
   age: number,
   initialIsa: number,
   initialPension: number,
@@ -17,7 +18,7 @@ interface StateData {
 
 function App() {
   const [data, setData] = useState<StateData>({
-    chartData: [],
+    simulationResults: undefined,
     age: 0,
     annualDrawdown: 0,
     initialIsa: 0,
@@ -33,9 +34,8 @@ function App() {
       annualContribution: data.isaContribution + data.pensionContribution,
       annualDrawdown: data.annualDrawdown
     }, {mean:1.06, standardDeviation: 0.15})
-    const results = runner.Run();
-    setData({...data, chartData: results.map((x, i) => { return { age: data.age + i, percentile10: x.percentile10, percentile90: x.percentile90, median: x.median } })})
-    console.log("Age is " + data.age)
+    const simulationResults = runner.Run();
+    setData({...data, simulationResults});
   };
 
   return (
@@ -63,8 +63,8 @@ function App() {
       </Box>
       <Button onClick={generateData}>Generate Data</Button>
       <p></p>
-      {data.chartData.length > 0
-        ? <Chart chartData={data.chartData} />
+      {data.simulationResults
+        ? <Chart chartData={data.simulationResults} />
         : <h1>No Graph Data</h1>}
     </div>
   );
