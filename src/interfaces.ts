@@ -3,6 +3,7 @@ export interface SimulationData {
     initialValue: number;
     annualContribution: number;
     annualDrawdown: number;
+    safeWithdrawalRate: number;
 }
 
 export interface StatisticalModel {

@@ -21,7 +21,7 @@ it("Generates random numbers in a normal distribution", () => {
 it("A simulation with no growth, variance or contribution does not grow", () => {
     const initialValue = 10000;
     const runner = new SimulationRunner(
-        { age: 36, initialValue, annualContribution: 0, annualDrawdown: 0 },
+        { age: 36, initialValue, annualContribution: 0, annualDrawdown: 0, safeWithdrawalRate: .04 },
         NO_GROWTH);
     const results = runner.Run().annualData;
     expect(results[results.length-1].median).toEqual(initialValue)
@@ -29,7 +29,7 @@ it("A simulation with no growth, variance or contribution does not grow", () => 
 
 it("A simulation with sufficient initialValue retires and draws down", () => {
     const runner = new SimulationRunner(
-        { age: 36, initialValue: 1000000, annualContribution: 0, annualDrawdown: 1000 },
+        { age: 36, initialValue: 1000000, annualContribution: 0, annualDrawdown: 1000, safeWithdrawalRate: .04 },
         NO_GROWTH);
     const results = runner.Run().annualData;
     expect(results[results.length-1].median).toEqual(950000)
@@ -39,7 +39,7 @@ it("A simulation reaches retirement and draws down", () => {
     const drawdown = 50000
 
     const runner = new SimulationRunner(
-        { age: 0, initialValue: 0, annualContribution: drawdown, annualDrawdown: drawdown },
+        { age: 0, initialValue: 0, annualContribution: drawdown, annualDrawdown: drawdown, safeWithdrawalRate: .04 },
         NO_GROWTH);
     const {annualData, medianRetirementAge} = runner.Run();
     expect(annualData[annualData.length-1].median).toEqual(0);

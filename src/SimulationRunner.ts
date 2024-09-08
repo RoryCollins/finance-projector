@@ -24,16 +24,16 @@ export default class SimulationRunner {
     readonly annualContribution: number;
     readonly annualDrawdown: number;
     readonly distributionData: StatisticalDistributionData;
-    readonly swr: number;
+    readonly safeWithdrawalRate: number;
 
     constructor(
-        { age, initialValue, annualContribution, annualDrawdown }: SimulationData,
+        { age, initialValue, annualContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
         distributionData: StatisticalDistributionData) {
         this.age = age;
         this.initialValue = initialValue;
         this.annualContribution = annualContribution;
         this.annualDrawdown = annualDrawdown;
-        this.swr = 0.04
+        this.safeWithdrawalRate = safeWithdrawalRate
         this.distributionData = distributionData;
     }
 
@@ -67,7 +67,7 @@ export default class SimulationRunner {
     }
 
     private progressYear = (previousValue: number, interest: number, retired: boolean) => {
-        if (previousValue >= this.annualDrawdown / this.swr) {
+        if (previousValue >= this.annualDrawdown / this.safeWithdrawalRate) {
             retired = true;
         }
 

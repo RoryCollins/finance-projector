@@ -14,6 +14,7 @@ interface StateData {
   isaContribution: number,
   pensionContribution: number,
   annualDrawdown: number,
+  safeWithdrawalRate: number,
 }
 
 function App() {
@@ -24,7 +25,8 @@ function App() {
     initialIsa: 0,
     initialPension: 0,
     isaContribution: 0,
-    pensionContribution: 0
+    pensionContribution: 0,
+    safeWithdrawalRate: 0
   })
 
   const generateData = () => {
@@ -32,7 +34,8 @@ function App() {
       age: data.age, 
       initialValue: data.initialIsa + data.initialPension,
       annualContribution: data.isaContribution + data.pensionContribution,
-      annualDrawdown: data.annualDrawdown
+      annualDrawdown: data.annualDrawdown,
+      safeWithdrawalRate: data.safeWithdrawalRate / 100
     }, {mean:1.06, standardDeviation: 0.15})
     const simulationResults = runner.Run();
     setData({...data, simulationResults});
@@ -59,6 +62,7 @@ function App() {
         </div>
         <div>
           <TextField id="drawdown" label="Annual Drawdown" variant="outlined" type="number" onChange={(e) => setData({...data, annualDrawdown:parseInt(e.target.value)})}/>
+          <TextField id="swr" label="Safe Withdrawal Rate (%)" variant="outlined" type="number" onChange={(e) => setData({...data, safeWithdrawalRate:parseFloat(e.target.value)})}/>
         </div>
       </Box>
       <Button onClick={generateData}>Generate Data</Button>
