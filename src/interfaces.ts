@@ -1,7 +1,9 @@
 export interface SimulationData {
     age: number;
-    initialValue: number;
-    annualContribution: number;
+    initialIsaValue: number;
+    initialPensionValue: number;
+    annualIsaContribution: number;
+    annualPensionContribution: number;
     annualDrawdown: number;
     safeWithdrawalRate: number;
 }

@@ -27,7 +27,7 @@ export default class SimulationRunner {
     readonly safeWithdrawalRate: number;
 
     constructor(
-        { age, initialValue, annualContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
+        { age, initialIsaValue: initialValue, annualIsaContribution: annualContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
         distributionData: StatisticalDistributionData) {
         this.age = age;
         this.initialValue = initialValue;

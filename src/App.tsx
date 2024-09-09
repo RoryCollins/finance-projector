@@ -32,8 +32,8 @@ function App() {
   const generateData = () => {
     const runner = new SimulationRunner({
       age: data.age, 
-      initialValue: data.initialIsa + data.initialPension,
-      annualContribution: data.isaContribution + data.pensionContribution,
+      initialIsaValue: data.initialIsa + data.initialPension,
+      annualIsaContribution: data.isaContribution + data.pensionContribution,
       annualDrawdown: data.annualDrawdown,
       safeWithdrawalRate: data.safeWithdrawalRate / 100
     }, {mean:1.06, standardDeviation: 0.15})
