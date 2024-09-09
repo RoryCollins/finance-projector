@@ -35,13 +35,17 @@ it("A simulation with sufficient initialValue retires and draws down", () => {
     expect(results[results.length-1].median).toEqual(950000)
 });
 
-it("A simulation reaches retirement and draws down", () => {
-    const drawdown = 50000
+it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
+    const drawdown = 50000;
+    const swr = 0.04;
+    const savingsTarget = drawdown / swr;
+    const contribution = 50000
+    const expectedRetirementAge = (savingsTarget / contribution) + 1
 
     const runner = new SimulationRunner(
-        { age: 0, initialValue: 0, annualContribution: drawdown, annualDrawdown: drawdown, safeWithdrawalRate: .04 },
+        { age: 0, initialValue: 0, annualContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr },
         NO_GROWTH);
     const {annualData, medianRetirementAge} = runner.Run();
     expect(annualData[annualData.length-1].median).toEqual(0);
-    expect(medianRetirementAge).toEqual(26);
+    expect(medianRetirementAge).toEqual(expectedRetirementAge);
 });
