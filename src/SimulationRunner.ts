@@ -20,18 +20,22 @@ function FiftyNormallyDistributedRandomNumbers(mean: number, standardDeviation: 
 
 export default class SimulationRunner {
     readonly age: number;
-    readonly initialValue: number;
-    readonly annualContribution: number;
+    readonly initialIsaValue: number;
+    readonly annualIsaContribution: number;
+    readonly initialPensionValue: number;
+    readonly annualPensionContribution: number;
     readonly annualDrawdown: number;
     readonly distributionData: StatisticalDistributionData;
     readonly safeWithdrawalRate: number;
 
     constructor(
-        { age, initialIsaValue: initialValue, annualIsaContribution: annualContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
+        { age, initialIsaValue, annualIsaContribution, initialPensionValue, annualPensionContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
         distributionData: StatisticalDistributionData) {
         this.age = age;
-        this.initialValue = initialValue;
-        this.annualContribution = annualContribution;
+        this.initialIsaValue = initialIsaValue;
+        this.annualIsaContribution = annualIsaContribution;
+        this.initialPensionValue = initialPensionValue;
+        this.annualPensionContribution = annualPensionContribution;
         this.annualDrawdown = annualDrawdown;
         this.safeWithdrawalRate = safeWithdrawalRate
         this.distributionData = distributionData;
@@ -62,7 +66,7 @@ export default class SimulationRunner {
         const f = returns.reduce((acc: Array<{ value: number, retired: boolean }>, x: number) => {
             let { value, retired } = acc[acc.length - 1];
             return [...acc, this.progressYear(value, x, retired)]
-        }, [{ value: this.initialValue, retired: false }]);
+        }, [{ value: this.initialIsaValue, retired: false }]);
         return { vals: f.map(it => it.value), retirementAge: f.findIndex(d => d.retired) };
     }
 
@@ -71,7 +75,7 @@ export default class SimulationRunner {
             retired = true;
         }
 
-        var delta = retired ? -this.annualDrawdown : this.annualContribution;
+        var delta = retired ? -this.annualDrawdown : this.annualIsaContribution;
 
         return { value: (previousValue + delta) * interest, retired }
     }
