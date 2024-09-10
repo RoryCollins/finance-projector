@@ -1,6 +1,9 @@
+import { Console } from "console";
 import { SimulationData, StatisticalModel } from "./interfaces";
 import SimulationRunner, { GetNormallyDistributedRandomNumber } from "./SimulationRunner"
 
+const statePensionAge = 68;
+const earlyPensionAge = statePensionAge - 10;
 const NO_GROWTH : StatisticalModel = {mean: 1, standardDeviation: 0}
 let A_Simulation : SimulationData = {
     age: 0,
@@ -49,14 +52,15 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
     const swr = 0.04;
     const savingsTarget = drawdown / swr;
     const contribution = 50000
-    const expectedRetirementAge = (savingsTarget / contribution)
+    const startingAgeToBypassPensionReq = 100
+    const expectedRetirementAge = startingAgeToBypassPensionReq + (savingsTarget / contribution)
 
     const runner = new SimulationRunner(
-        {...A_Simulation, annualIsaContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr },
+        {...A_Simulation, age: startingAgeToBypassPensionReq, annualIsaContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr },
         NO_GROWTH);
     const {annualData, medianRetirementAge} = runner.Run();
-    expect(annualData[annualData.length-1].median).toEqual(0);
     expect(medianRetirementAge).toEqual(expectedRetirementAge);
+    expect(annualData[annualData.length-1].median).toEqual(0);
 });
 
 it("Retires at 68 even if other conditions not met", () => {
@@ -64,7 +68,7 @@ it("Retires at 68 even if other conditions not met", () => {
         {...A_Simulation, annualDrawdown: 100000, age: 35},
         NO_GROWTH);
     const {medianRetirementAge} = runner.Run();
-    expect(medianRetirementAge).toEqual(68);
+    expect(medianRetirementAge).toEqual(statePensionAge);
 });
 
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
@@ -72,5 +76,24 @@ it("A portfolio with wealth stored in a pension cannot be accessed before the se
         {...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45},
         NO_GROWTH);
     const {medianRetirementAge} = runner.Run();
-    expect(medianRetirementAge).toEqual(58);
+    expect(medianRetirementAge).toEqual(earlyPensionAge);
+});
+
+it("Early retirement can only be reached when there is enough in ISA to last until pension access", () => {
+    const annualDrawdown = 25000;
+    const initialIsaValue = annualDrawdown * 4;
+
+    const runner = new SimulationRunner(
+        {...A_Simulation, initialIsaValue, initialPensionValue: 1000000, annualDrawdown, age: 45},
+        NO_GROWTH);
+    const {medianRetirementAge} = runner.Run();
+    expect(medianRetirementAge).toEqual(earlyPensionAge-4);
+});
+
+it("Defers retirement for up to three years when the stock market returns are negative", () => {
+    const runner = new SimulationRunner(
+        {...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45},
+        {mean: 0.99, standardDeviation:0});
+    const {medianRetirementAge} = runner.Run();
+    expect(medianRetirementAge).toEqual(earlyPensionAge+3);
 });
