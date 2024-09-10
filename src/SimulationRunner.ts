@@ -1,6 +1,9 @@
 import _ from "underscore";
 import { SimulationData, SimulationResults, StatisticalModel as StatisticalDistributionData } from "./interfaces";
 
+const statePensionAge = 68;
+const earlyPensionAge = statePensionAge - 10;
+
 function BoxMullerTransform(): number {
     const u1 = Math.random();
     const u2 = Math.random();
@@ -63,24 +66,37 @@ export default class SimulationRunner {
 
     private OneScenario = (): { vals: number[], retirementAge: number } => {
         const returns = FiftyNormallyDistributedRandomNumbers(this.distributionData.mean, this.distributionData.standardDeviation);
-        const f = returns.reduce((acc: Array<{ value: number, retired: boolean }>, x: number, i: number) => {
-            let { value, retired } = acc[acc.length - 1];
-            return [...acc, this.progressYear(value, x, retired, this.age + i)]
-        }, [{ value: this.initialIsaValue, retired: false }]);
-        return { vals: f.map(it => it.value), retirementAge: f.findIndex(d => d.retired) - 1 };
+        const f = returns.reduce((acc: Array<{ isaValue: number, pensionValue: number, retired: boolean }>, x: number, i: number) => {
+            let { isaValue, pensionValue, retired } = acc[acc.length - 1];
+            return [...acc, this.progressYear(isaValue, pensionValue, x, retired, this.age + i)]
+        }, [{ isaValue: this.initialIsaValue, pensionValue: this.initialPensionValue, retired: false }]);
+        return { vals: f.map(it => it.isaValue), retirementAge: f.findIndex(d => d.retired) - 1 };
     }
 
-    private progressYear = (previousValue: number, interest: number, retired: boolean, age: number) => {
-        if (previousValue >= this.annualDrawdown / this.safeWithdrawalRate) {
+    private progressYear = (currentIsaValue: number, currentPensionValue: number, interest: number, retired: boolean, age: number) => {
+        if ((currentIsaValue + currentPensionValue) >= this.annualDrawdown / this.safeWithdrawalRate) {
             retired = true;
         }
 
-        if(age === 68){
+        if(age === statePensionAge){
             retired = true;
         }
 
-        var delta = retired ? -this.annualDrawdown : this.annualIsaContribution;
+        let nextIsaValue: number;
+        let nextPensionValue: number;
+        if(retired && age < earlyPensionAge){
+            nextIsaValue = (currentIsaValue - this.annualDrawdown) * interest;
+            nextPensionValue = currentPensionValue * interest;
+        }
+        else if (retired) {
+            nextIsaValue = currentIsaValue * interest;
+            nextPensionValue = (currentPensionValue - this.annualDrawdown) * interest;
+        }
+        else {
+            nextIsaValue = (currentIsaValue + this.annualIsaContribution) * interest;
+            nextPensionValue = (currentPensionValue + this.annualPensionContribution) * interest;
+        }
 
-        return { value: (previousValue + delta) * interest, retired }
+        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired }
     }
 }
