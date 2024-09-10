@@ -49,7 +49,7 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
     const swr = 0.04;
     const savingsTarget = drawdown / swr;
     const contribution = 50000
-    const expectedRetirementAge = (savingsTarget / contribution) + 1
+    const expectedRetirementAge = (savingsTarget / contribution)
 
     const runner = new SimulationRunner(
         {...A_Simulation, annualIsaContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr },
@@ -57,6 +57,14 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
     const {annualData, medianRetirementAge} = runner.Run();
     expect(annualData[annualData.length-1].median).toEqual(0);
     expect(medianRetirementAge).toEqual(expectedRetirementAge);
+});
+
+it("Retires at 68 even if other conditions not met", () => {
+    const runner = new SimulationRunner(
+        {...A_Simulation, annualDrawdown: 100000, age: 35},
+        NO_GROWTH);
+    const {medianRetirementAge} = runner.Run();
+    expect(medianRetirementAge).toEqual(68);
 });
 
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {

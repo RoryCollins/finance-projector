@@ -63,15 +63,19 @@ export default class SimulationRunner {
 
     private OneScenario = (): { vals: number[], retirementAge: number } => {
         const returns = FiftyNormallyDistributedRandomNumbers(this.distributionData.mean, this.distributionData.standardDeviation);
-        const f = returns.reduce((acc: Array<{ value: number, retired: boolean }>, x: number) => {
+        const f = returns.reduce((acc: Array<{ value: number, retired: boolean }>, x: number, i: number) => {
             let { value, retired } = acc[acc.length - 1];
-            return [...acc, this.progressYear(value, x, retired)]
+            return [...acc, this.progressYear(value, x, retired, this.age + i)]
         }, [{ value: this.initialIsaValue, retired: false }]);
-        return { vals: f.map(it => it.value), retirementAge: f.findIndex(d => d.retired) };
+        return { vals: f.map(it => it.value), retirementAge: f.findIndex(d => d.retired) - 1 };
     }
 
-    private progressYear = (previousValue: number, interest: number, retired: boolean) => {
+    private progressYear = (previousValue: number, interest: number, retired: boolean, age: number) => {
         if (previousValue >= this.annualDrawdown / this.safeWithdrawalRate) {
+            retired = true;
+        }
+
+        if(age === 68){
             retired = true;
         }
 
