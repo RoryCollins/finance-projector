@@ -1,4 +1,3 @@
-import { Console } from "console";
 import { SimulationData, StatisticalModel } from "./interfaces";
 import SimulationRunner, { GetNormallyDistributedRandomNumber } from "./SimulationRunner"
 
@@ -97,3 +96,12 @@ it("Defers retirement for up to three years when the stock market returns are ne
     const {medianRetirementAge} = runner.Run();
     expect(medianRetirementAge).toEqual(earlyPensionAge+3);
 });
+
+it("Determines success rate of scenario", () => {
+    const runner = new SimulationRunner(
+        {...A_Simulation, initialPensionValue: 1000, annualDrawdown: 10000, age: 67},
+        NO_GROWTH);
+    const {successRate, medianRetirementAge} = runner.Run();
+    expect(successRate).toEqual(0);
+    // expect(medianRetirementddddAge).toEqual(-1);
+})

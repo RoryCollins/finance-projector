@@ -7,7 +7,7 @@ import { SimulationResults } from './interfaces';
 // import { ChartData } from './interfaces';
 
 interface StateData {
-  simulationResults? : SimulationResults,
+  simulationResults?: SimulationResults,
   age: number,
   initialIsa: number,
   initialPension: number,
@@ -31,16 +31,16 @@ function App() {
 
   const generateData = () => {
     const runner = new SimulationRunner({
-      age: data.age, 
+      age: data.age,
       initialIsaValue: data.initialIsa,
       initialPensionValue: data.initialPension,
       annualIsaContribution: data.isaContribution,
       annualPensionContribution: data.pensionContribution,
       annualDrawdown: data.annualDrawdown,
       safeWithdrawalRate: data.safeWithdrawalRate / 100
-    }, {mean:1.06, standardDeviation: 0.15})
+    }, { mean: 1.06, standardDeviation: 0.15 })
     const simulationResults = runner.Run();
-    setData({...data, simulationResults});
+    setData({ ...data, simulationResults });
   };
 
   return (
@@ -52,25 +52,28 @@ function App() {
         autoComplete="off"
       >
         <div>
-          <TextField id="age" label="Age" variant="outlined" type="number" onChange={(e) => setData({...data, age:parseInt(e.target.value)})} />
+          <TextField id="age" label="Age" variant="outlined" type="number" onChange={(e) => setData({ ...data, age: parseInt(e.target.value) })} />
         </div>
         <div>
-          <TextField id="isa-initial" label="ISA value" variant="outlined" type="number" onChange={(e) => setData({...data, initialIsa:parseInt(e.target.value)})} />
-          <TextField id="isa-contribution" label="Annual ISA Contribution" variant="outlined" type="number" onChange={(e) => setData({...data, isaContribution:parseInt(e.target.value)})}/>
+          <TextField id="isa-initial" label="ISA value" variant="outlined" type="number" onChange={(e) => setData({ ...data, initialIsa: parseInt(e.target.value) })} />
+          <TextField id="isa-contribution" label="Annual ISA Contribution" variant="outlined" type="number" onChange={(e) => setData({ ...data, isaContribution: parseInt(e.target.value) })} />
         </div>
         <div>
-          <TextField id="pension-initial" label="Pension value" variant="outlined" type="number" onChange={(e) => setData({...data, initialPension:parseInt(e.target.value)})}/>
-          <TextField id="pension-contribution" label="Annual Pension Contribution" variant="outlined" type="number" onChange={(e) => setData({...data, pensionContribution:parseInt(e.target.value)})}/>
+          <TextField id="pension-initial" label="Pension value" variant="outlined" type="number" onChange={(e) => setData({ ...data, initialPension: parseInt(e.target.value) })} />
+          <TextField id="pension-contribution" label="Annual Pension Contribution" variant="outlined" type="number" onChange={(e) => setData({ ...data, pensionContribution: parseInt(e.target.value) })} />
         </div>
         <div>
-          <TextField id="drawdown" label="Annual Drawdown" variant="outlined" type="number" onChange={(e) => setData({...data, annualDrawdown:parseInt(e.target.value)})}/>
-          <TextField id="swr" label="Safe Withdrawal Rate (%)" variant="outlined" type="number" onChange={(e) => setData({...data, safeWithdrawalRate:parseFloat(e.target.value)})}/>
+          <TextField id="drawdown" label="Annual Drawdown" variant="outlined" type="number" onChange={(e) => setData({ ...data, annualDrawdown: parseInt(e.target.value) })} />
+          <TextField id="swr" label="Safe Withdrawal Rate (%)" variant="outlined" type="number" onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
         </div>
       </Box>
       <Button onClick={generateData}>Generate Data</Button>
       <p></p>
       {data.simulationResults
-        ? <Chart chartData={data.simulationResults} />
+        ? <>
+        <h2>Success Rate: {data.simulationResults.successRate}</h2>
+          <Chart chartData={data.simulationResults} />
+        </>
         : <h1>No Graph Data</h1>}
     </div>
   );

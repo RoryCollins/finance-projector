@@ -15,6 +15,7 @@ export interface StatisticalModel {
 
 export interface SimulationResults {
     medianRetirementAge: number
+    successRate: number;
     annualData : {
         age: number
         median: number
