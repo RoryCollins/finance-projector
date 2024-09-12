@@ -12,17 +12,12 @@ import {
 } from 'recharts';
 import { SimulationResults } from './interfaces';
 
-const roundTo = (n: number, p: number) => {
-    return Math.round(n/p) * p
-}
-
-
 const numericFormatter = (n: number | number[]) : string => {
     if(Array.isArray(n)){
         return numericFormatter(n[0]) + " - " + numericFormatter(n[1]);
     }
-    if (n > 1_000_000) return "£" + roundTo(n/1_000_000, 0.1)  + "m";
-    else if (n > 1_000) return "£" + roundTo(n/1_000, 1) + "k";
+    if (Math.abs(n) > 1_000_000) return "£" + (n/1_000_000).toFixed(1)  + "m";
+    else if (Math.abs(n) > 1_000) return "£" + (n/1_000).toFixed(0) + "k";
     else return "£" + n
 }
 
