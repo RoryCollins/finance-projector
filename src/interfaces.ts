@@ -23,10 +23,3 @@ export interface SimulationResults {
         percentile90: number
     }[]
 }
-
-// export interface ChartData{
-//     age: number
-//     percentile10: number
-//     percentile90: number
-//     median: number
-// }

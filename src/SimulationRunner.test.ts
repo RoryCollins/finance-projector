@@ -103,5 +103,4 @@ it("Determines success rate of scenario", () => {
         NO_GROWTH);
     const {successRate, medianRetirementAge} = runner.Run();
     expect(successRate).toEqual(0);
-    // expect(medianRetirementddddAge).toEqual(-1);
 })

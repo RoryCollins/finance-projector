@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import Chart from './Chart';
-import { TextField, Button, Box } from '@mui/material';
+import { TextField, Button, Box, Card } from '@mui/material';
 import SimulationRunner from './SimulationRunner';
 import { SimulationResults } from './interfaces';
 // import { ChartData } from './interfaces';
@@ -29,7 +29,7 @@ function App() {
     safeWithdrawalRate: 0
   })
 
-  const generateData = () => {
+  const runSimulation = () => {
     const runner = new SimulationRunner({
       age: data.age,
       initialIsaValue: data.initialIsa,
@@ -67,11 +67,12 @@ function App() {
           <TextField id="swr" label="Safe Withdrawal Rate (%)" variant="outlined" type="number" onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
         </div>
       </Box>
-      <Button onClick={generateData}>Generate Data</Button>
+      <Button onClick={runSimulation}>Run Simulation</Button>
       <p></p>
       {data.simulationResults
         ? <>
-        <h2>Success Rate: {data.simulationResults.successRate}</h2>
+        <Card></Card>
+        <h2>Success Rate: {data.simulationResults.successRate * 100}%</h2>
           <Chart chartData={data.simulationResults} />
         </>
         : <h1>No Graph Data</h1>}
