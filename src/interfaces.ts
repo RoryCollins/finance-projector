@@ -8,6 +8,14 @@ export interface SimulationData {
     safeWithdrawalRate: number;
 }
 
+export interface RiskAppetite {
+    age: number;
+    distribution: {
+        model: StatisticalModel,
+        percentage: number
+    }[];
+}
+
 export interface StatisticalModel {
     mean: number;
     standardDeviation: number;
@@ -21,5 +29,5 @@ export interface SimulationResults {
         median: number
         percentile10: number
         percentile90: number
-    }[]
+    }[];
 }

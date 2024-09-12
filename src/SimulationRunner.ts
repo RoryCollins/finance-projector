@@ -1,5 +1,5 @@
 import _ from "underscore";
-import { SimulationData, SimulationResults, StatisticalModel as StatisticalDistributionData } from "./interfaces";
+import { RiskAppetite, SimulationData, SimulationResults, StatisticalModel as StatisticalDistributionData } from "./interfaces";
 
 const statePensionAge = 68;
 const earlyPensionAge = statePensionAge - 10;
@@ -33,7 +33,7 @@ export default class SimulationRunner {
 
     constructor(
         { age, initialIsaValue, annualIsaContribution, initialPensionValue, annualPensionContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
-        distributionData: StatisticalDistributionData) {
+        distributionData: RiskAppetite[]) {
         this.age = age;
         this.initialIsaValue = initialIsaValue;
         this.annualIsaContribution = annualIsaContribution;
@@ -41,7 +41,7 @@ export default class SimulationRunner {
         this.annualPensionContribution = annualPensionContribution;
         this.annualDrawdown = annualDrawdown;
         this.safeWithdrawalRate = safeWithdrawalRate
-        this.distributionData = distributionData;
+        this.distributionData = distributionData[0].distribution[0].model;
     }
 
     Run = (): SimulationResults => {
