@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import Chart from './Chart';
-import { TextField, Button, Box, Card } from '@mui/material';
+import { TextField, Button, Box, Card, Step, InputAdornment } from '@mui/material';
 import SimulationRunner from './SimulationRunner';
 import { SimulationResults } from './interfaces';
 // import { ChartData } from './interfaces';
@@ -20,13 +20,13 @@ interface StateData {
 function App() {
   const [data, setData] = useState<StateData>({
     simulationResults: undefined,
-    age: 0,
-    annualDrawdown: 0,
-    initialIsa: 0,
-    initialPension: 0,
-    isaContribution: 0,
-    pensionContribution: 0,
-    safeWithdrawalRate: 0
+    age: 30,
+    annualDrawdown: 20000,
+    initialIsa: 10000,
+    initialPension: 30_000,
+    isaContribution: 5_000,
+    pensionContribution: 12_000,
+    safeWithdrawalRate: 3.5
   })
 
   const runSimulation = () => {
@@ -38,7 +38,7 @@ function App() {
       annualPensionContribution: data.pensionContribution,
       annualDrawdown: data.annualDrawdown,
       safeWithdrawalRate: data.safeWithdrawalRate / 100
-    }, { mean: 1.06, standardDeviation: 0.15 })
+    }, [{ age: data.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }]);
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
   };
@@ -52,27 +52,57 @@ function App() {
         autoComplete="off"
       >
         <div>
-          <TextField id="age" label="Age" variant="outlined" type="number" onChange={(e) => setData({ ...data, age: parseInt(e.target.value) })} />
+          <TextField label="Age" variant="outlined" type="number" value={data.age} onChange={(e) => setData({ ...data, age: parseInt(e.target.value) })} />
         </div>
         <div>
-          <TextField id="isa-initial" label="ISA value" variant="outlined" type="number" onChange={(e) => setData({ ...data, initialIsa: parseInt(e.target.value) })} />
-          <TextField id="isa-contribution" label="Annual ISA Contribution" variant="outlined" type="number" onChange={(e) => setData({ ...data, isaContribution: parseInt(e.target.value) })} />
+          <TextField label="ISA value" variant="outlined" value={data.initialIsa} type="number" slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start">£</InputAdornment>,
+            },
+            htmlInput: { step: 1000 }
+          }} onChange={(e) => setData({ ...data, initialIsa: parseInt(e.target.value) })} />
+          <TextField label="Annual ISA Contribution" variant="outlined" type="number" value={data.isaContribution} slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start">£</InputAdornment>,
+            },
+            htmlInput: { step: 1000 }
+          }} onChange={(e) => setData({ ...data, isaContribution: parseInt(e.target.value) })} />
         </div>
         <div>
-          <TextField id="pension-initial" label="Pension value" variant="outlined" type="number" onChange={(e) => setData({ ...data, initialPension: parseInt(e.target.value) })} />
-          <TextField id="pension-contribution" label="Annual Pension Contribution" variant="outlined" type="number" onChange={(e) => setData({ ...data, pensionContribution: parseInt(e.target.value) })} />
+          <TextField label="Pension value" variant="outlined" type="number" value={data.initialPension} slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start">£</InputAdornment>,
+            },
+            htmlInput: { step: 1000 }
+          }} onChange={(e) => setData({ ...data, initialPension: parseInt(e.target.value) })} />
+          <TextField label="Annual Pension Contribution" variant="outlined" type="number" value={data.pensionContribution} slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start">£</InputAdornment>,
+            },
+            htmlInput: { step: 1000 }
+          }} onChange={(e) => setData({ ...data, pensionContribution: parseInt(e.target.value) })} />
         </div>
         <div>
-          <TextField id="drawdown" label="Annual Drawdown" variant="outlined" type="number" onChange={(e) => setData({ ...data, annualDrawdown: parseInt(e.target.value) })} />
-          <TextField id="swr" label="Safe Withdrawal Rate (%)" variant="outlined" type="number" onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
+          <TextField label="Annual Drawdown" variant="outlined" type="number" value={data.annualDrawdown} slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start">£</InputAdornment>,
+            },
+            htmlInput: { step: 1000 }
+          }} onChange={(e) => setData({ ...data, annualDrawdown: parseInt(e.target.value) })} />
+          <TextField label="Safe Withdrawal Rate (%)" variant="outlined" type="number" value={data.safeWithdrawalRate} slotProps={{
+            input: {
+              startAdornment: <InputAdornment position="start">%</InputAdornment>,
+            },
+            htmlInput: { step: 0.1 }
+          }} onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
         </div>
       </Box>
-      <Button onClick={runSimulation}>Run Simulation</Button>
+      <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
       <p></p>
       {data.simulationResults
         ? <>
-        <Card></Card>
-        <h2>Success Rate: {data.simulationResults.successRate * 100}%</h2>
+          <Card></Card>
+          <h2>Success Rate: {data.simulationResults.successRate * 100}%</h2>
           <Chart chartData={data.simulationResults} />
         </>
         : <h1>No Graph Data</h1>}
