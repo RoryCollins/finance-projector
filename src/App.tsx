@@ -102,7 +102,7 @@ function App() {
       {data.simulationResults
         ? <>
           <Card></Card>
-          <h2>Success Rate: {data.simulationResults.successRate * 100}%</h2>
+          <h2>Success Rate: {(data.simulationResults.successRate * 100).toFixed(1)}%</h2>
           <Chart chartData={data.simulationResults} />
         </>
         : <h1>No Graph Data</h1>}
