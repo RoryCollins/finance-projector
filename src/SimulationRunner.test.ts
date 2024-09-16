@@ -4,6 +4,8 @@ import SimulationRunner, { GetNormallyDistributedRandomNumber } from "./Simulati
 const statePensionAge = 68;
 const earlyPensionAge = statePensionAge - 10;
 const NO_GROWTH: StatisticalModel = { mean: 1, standardDeviation: 0 }
+const startingAgeToBypassPensionReq = 100
+
 let A_Simulation: SimulationData = {
     age: 0,
     initialIsaValue: 0,
@@ -51,7 +53,6 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
     const swr = 0.04;
     const savingsTarget = drawdown / swr;
     const contribution = 50000
-    const startingAgeToBypassPensionReq = 100
     const expectedRetirementAge = startingAgeToBypassPensionReq + (savingsTarget / contribution)
 
     const runner = new SimulationRunner(
@@ -115,21 +116,21 @@ it("Risk appetite affects returns", () => {
         standardDeviation: 0
     }
     const runner = new SimulationRunner(
-        { ...A_Simulation, initialPensionValue: 1000, annualDrawdown: 10000, age: 30 },
+        { ...A_Simulation, initialPensionValue: 1000, age: startingAgeToBypassPensionReq },
         [{
-            age: 30,
+            age: startingAgeToBypassPensionReq,
             distribution: [{
                 model: statisticalModelA,
                 percentage: 100
             }]
         },
         {
-            age: 31,
+            age: startingAgeToBypassPensionReq+1,
             distribution: [{
                 model: statisticalModelB,
                 percentage: 100
             }]
         }]);
-    const {} = runner.Run();
-    expect(true).toBe(false);
+    const {annualData} = runner.Run();
+    expect(annualData[annualData.length-1].median).toEqual(2000)
 });

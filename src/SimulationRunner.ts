@@ -28,7 +28,7 @@ export default class SimulationRunner {
     readonly initialPensionValue: number;
     readonly annualPensionContribution: number;
     readonly annualDrawdown: number;
-    readonly distributionData: StatisticalDistributionData;
+    readonly distributionData: RiskAppetite[];
     readonly safeWithdrawalRate: number;
 
     constructor(
@@ -41,7 +41,7 @@ export default class SimulationRunner {
         this.annualPensionContribution = annualPensionContribution;
         this.annualDrawdown = annualDrawdown;
         this.safeWithdrawalRate = safeWithdrawalRate
-        this.distributionData = distributionData[0].distribution[0].model;
+        this.distributionData = distributionData;
     }
 
     Run = (): SimulationResults => {
@@ -66,12 +66,27 @@ export default class SimulationRunner {
     }
 
     private OneScenario = (): { vals: number[], retirementAge: number, success: boolean } => {
-        const returns = FiftyNormallyDistributedRandomNumbers(this.distributionData.mean, this.distributionData.standardDeviation);
+
+        const returns = this.getFiftyYearsOfReturns();
+
+
         const f = returns.reduce((acc: Array<{ isaValue: number, pensionValue: number, retired: boolean, deferredRetirementCounter: number, success: boolean }>, x: number, i: number) => {
             let { isaValue, pensionValue, retired, deferredRetirementCounter, success } = acc[acc.length - 1];
             return [...acc, this.progressYear(isaValue, pensionValue, x, retired, this.age + i, deferredRetirementCounter, success)]
         }, [{ isaValue: this.initialIsaValue, pensionValue: this.initialPensionValue, retired: false, deferredRetirementCounter: 0, success: true }]);
         return { vals: f.map(it => (it.isaValue + it.pensionValue)), retirementAge: f.findIndex(d => d.retired) - 1, success: f[f.length-1].success };
+    }
+    
+    private getFiftyYearsOfReturns = () : number[] => {
+        return Array.from({length:50}, (_, k) => this.getReturnForAge(this.age+k));
+    }
+
+    private getReturnForAge = (age: number) : number => {
+        return this.distributionData
+        .filter(ra => ra.age <= age)
+        .at(-1)!.distribution
+        .map(d => (d.percentage/100) * (GetNormallyDistributedRandomNumber(d.model.mean, d.model.standardDeviation)))
+        .reduce((sum, d) => sum + d, 0);
     }
 
     private progressYear = (currentIsaValue: number, currentPensionValue: number, interest: number, retired: boolean, age: number, deferredRetirementCounter: number, success: boolean) => {
