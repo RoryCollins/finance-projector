@@ -21,6 +21,16 @@ function FiftyNormallyDistributedRandomNumbers(mean: number, standardDeviation: 
     return Array.from({ length: 50 }, () => GetNormallyDistributedRandomNumber(mean, standardDeviation));
 }
 
+interface PortfolioState {
+    age: number,
+    isaValue: number,
+    pensionValue: number,
+    interest: number,
+    retired: boolean,
+    deferredRetirementCounter: number,
+    success: boolean
+}
+
 export default class SimulationRunner {
     readonly age: number;
     readonly initialIsaValue: number;
@@ -69,11 +79,21 @@ export default class SimulationRunner {
 
         const returns = this.getFiftyYearsOfReturns();
 
+        const initialPortfolioState: PortfolioState = {
+            age: this.age,
+            isaValue: this.initialIsaValue,
+            pensionValue: this.initialPensionValue,
+            interest: 0,
+            retired: false,
+            deferredRetirementCounter: 0,
+            success: true
+        }
 
-        const f = returns.reduce((acc: Array<{ isaValue: number, pensionValue: number, retired: boolean, deferredRetirementCounter: number, success: boolean }>, x: number, i: number) => {
-            let { isaValue, pensionValue, retired, deferredRetirementCounter, success } = acc[acc.length - 1];
-            return [...acc, this.progressYear(isaValue, pensionValue, x, retired, this.age + i, deferredRetirementCounter, success)]
-        }, [{ isaValue: this.initialIsaValue, pensionValue: this.initialPensionValue, retired: false, deferredRetirementCounter: 0, success: true }]);
+        const f = returns.reduce((acc: Array<PortfolioState>, interest: number) => {
+            let nextPortfolioState = acc[acc.length - 1];
+            return [...acc, this.progressYear({...nextPortfolioState, interest})]
+        }, [initialPortfolioState]);
+
         return { vals: f.map(it => (it.isaValue + it.pensionValue)), retirementAge: f.findIndex(d => d.retired) - 1, success: f[f.length - 1].success };
     }
 
@@ -96,7 +116,7 @@ export default class SimulationRunner {
         currentPensionValue: number,
         interest: number,
         deferredRetirementCounter: number
-    ): {retired: boolean, deferredRetirementCounter: number} => {
+    ): { retired: boolean, deferredRetirementCounter: number } => {
         if (retired || age === statePensionAge) {
             retired = true;
         }
@@ -112,40 +132,42 @@ export default class SimulationRunner {
         }
 
 
-        return {retired, deferredRetirementCounter};
+        return { retired, deferredRetirementCounter };
     }
 
-    private progressYear = (currentIsaValue: number, currentPensionValue: number, interest: number, retired: boolean, age: number, deferredRetirementCounter: number, success: boolean) => {
-        ({retired, deferredRetirementCounter} = this.isRetired(retired, age, currentIsaValue, currentPensionValue, interest, deferredRetirementCounter));
+    private progressYear = (state: PortfolioState) : PortfolioState => {
+
+        let { isaValue, pensionValue, interest, retired, age, deferredRetirementCounter, success} = state;
+        ({ retired, deferredRetirementCounter } = this.isRetired(retired, age, isaValue, pensionValue, interest, deferredRetirementCounter));
 
         let nextIsaValue: number;
         let nextPensionValue: number;
 
         if (!retired) {
-            nextIsaValue = (currentIsaValue + this.annualIsaContribution) * interest;
-            nextPensionValue = (currentPensionValue + this.annualPensionContribution) * interest;
+            nextIsaValue = (isaValue + this.annualIsaContribution) * interest;
+            nextPensionValue = (pensionValue + this.annualPensionContribution) * interest;
         }
         else {
             if (age < earlyPensionAge) {
-                success = currentIsaValue >= this.annualDrawdown;
-                nextIsaValue = (currentIsaValue - this.annualDrawdown) * interest;
-                nextPensionValue = currentPensionValue * interest;
+                success = isaValue >= this.annualDrawdown;
+                nextIsaValue = (isaValue - this.annualDrawdown) * interest;
+                nextPensionValue = pensionValue * interest;
             }
             else {
-                success = (currentIsaValue + currentPensionValue) >= this.annualDrawdown;
-                if (currentPensionValue < this.annualDrawdown) {
-                    let remainder = this.annualDrawdown - currentPensionValue;
+                success = (isaValue + pensionValue) >= this.annualDrawdown;
+                if (pensionValue < this.annualDrawdown) {
+                    let remainder = this.annualDrawdown - pensionValue;
                     nextPensionValue = 0;
-                    nextIsaValue = (currentIsaValue - remainder) * interest;
+                    nextIsaValue = (isaValue - remainder) * interest;
                 }
                 else {
-                    nextPensionValue = (currentPensionValue - this.annualDrawdown) * interest;
-                    nextIsaValue = currentIsaValue * interest;
+                    nextPensionValue = (pensionValue - this.annualDrawdown) * interest;
+                    nextIsaValue = isaValue * interest;
                 }
             }
         }
 
-        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter }
+        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter, age: age+1, interest }
     }
 
     private targetFundsReached = (totalPotValue: number) => {
