@@ -1,5 +1,5 @@
 import { SimulationData, StatisticalModel } from "./interfaces";
-import SimulationRunner, { GetNormallyDistributedRandomNumber } from "./SimulationRunner"
+import SimulationRunner from "./SimulationRunner"
 
 const statePensionAge = 68;
 const earlyPensionAge = statePensionAge - 10;
@@ -16,26 +16,11 @@ let A_Simulation: SimulationData = {
     safeWithdrawalRate: 0.04
 }
 
-it("Generates random numbers in a normal distribution", () => {
-    const randomNumbers = Array.from({ length: 10000 }, () => GetNormallyDistributedRandomNumber(0, 1));
-
-    const randomNumbersWithinOneStandardDeviation = randomNumbers.filter(i => i < 1.0 && i > -1).length;
-    const randomNumbersWithinTwoStandardDeviations = randomNumbers.filter(i => i < 2.0 && i > -2).length;
-
-    //Expect Approx. 68%, allow 2% for tolerance
-    expect(randomNumbersWithinOneStandardDeviation).toBeGreaterThanOrEqual(6600);
-    expect(randomNumbersWithinOneStandardDeviation).toBeLessThanOrEqual(7000);
-
-    //Expect Approx. 95%, allow 2% for tolerance
-    expect(randomNumbersWithinTwoStandardDeviations).toBeGreaterThanOrEqual(9300);
-    expect(randomNumbersWithinTwoStandardDeviations).toBeLessThanOrEqual(9700);
-});
-
 it("A simulation with no growth, variance or contribution does not grow", () => {
     const initialValue = 10000;
     const runner = new SimulationRunner(
         { ...A_Simulation, initialIsaValue: initialValue },
-        [{age: 0, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: 0, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const results = runner.Run().annualData;
     expect(results[results.length - 1].median).toEqual(initialValue)
 });
@@ -43,7 +28,7 @@ it("A simulation with no growth, variance or contribution does not grow", () => 
 it("A simulation with sufficient initialValue retires and draws down", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, initialIsaValue: 1000000, annualDrawdown: 1000 },
-        [{age: 0, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: 0, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const results = runner.Run().annualData;
     expect(results[results.length - 1].median).toEqual(950000)
 });
@@ -57,7 +42,7 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
 
     const runner = new SimulationRunner(
         { ...A_Simulation, age: startingAgeToBypassPensionReq, annualIsaContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr },
-        [{age: startingAgeToBypassPensionReq, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: startingAgeToBypassPensionReq, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { annualData, medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(expectedRetirementAge);
     expect(annualData[annualData.length - 1].median).toEqual(0);
@@ -66,7 +51,7 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
 it("Retires at 68 even if other conditions not met", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, annualDrawdown: 100000, age: 35 },
-        [{age: 35, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: 35, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(statePensionAge);
 });
@@ -74,7 +59,7 @@ it("Retires at 68 even if other conditions not met", () => {
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45 },
-        [{age: 45, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: 45, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(earlyPensionAge);
 });
@@ -85,7 +70,7 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
 
     const runner = new SimulationRunner(
         { ...A_Simulation, initialIsaValue, initialPensionValue: 1000000, annualDrawdown, age: 45 },
-        [{age: 45, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: 45, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(earlyPensionAge - 4);
 });
@@ -93,7 +78,7 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
 it("Defers retirement for up to three years when the stock market returns are negative", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45 },
-        [{age: 45, distribution: [{model: {mean:0.99, standardDeviation:0}, percentage:100}]}]);
+        [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(earlyPensionAge + 3);
 });
@@ -101,7 +86,7 @@ it("Defers retirement for up to three years when the stock market returns are ne
 it("Determines success rate of scenario", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, initialPensionValue: 1000, annualDrawdown: 10000, age: 67 },
-        [{age: 67, distribution: [{model: NO_GROWTH, percentage:100}]}]);
+        [{ age: 67, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { successRate } = runner.Run();
     expect(successRate).toEqual(0);
 })
@@ -125,12 +110,12 @@ it("Risk appetite affects returns", () => {
             }]
         },
         {
-            age: startingAgeToBypassPensionReq+1,
+            age: startingAgeToBypassPensionReq + 1,
             distribution: [{
                 model: statisticalModelB,
                 percentage: 100
             }]
         }]);
-    const {annualData} = runner.Run();
-    expect(annualData[annualData.length-1].median).toEqual(2000)
+    const { annualData } = runner.Run();
+    expect(annualData[annualData.length - 1].median).toEqual(2000)
 });

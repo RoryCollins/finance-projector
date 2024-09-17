@@ -1,25 +1,9 @@
 import _ from "underscore";
-import { RiskAppetite, SimulationData, SimulationResults, StatisticalModel as StatisticalDistributionData } from "./interfaces";
+import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
+import { GetNormallyDistributedRandomNumber } from "./distribution";
 
 const statePensionAge = 68;
 const earlyPensionAge = statePensionAge - 10;
-
-function BoxMullerTransform(): number {
-    const u1 = Math.random();
-    const u2 = Math.random();
-
-    const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-
-    return z0;
-}
-
-export function GetNormallyDistributedRandomNumber(mean: number, standardDeviation: number): number {
-    return BoxMullerTransform() * standardDeviation + mean
-}
-
-function FiftyNormallyDistributedRandomNumbers(mean: number, standardDeviation: number): Array<number> {
-    return Array.from({ length: 50 }, () => GetNormallyDistributedRandomNumber(mean, standardDeviation));
-}
 
 interface PortfolioState {
     age: number,
@@ -91,7 +75,7 @@ export default class SimulationRunner {
 
         const f = returns.reduce((acc: Array<PortfolioState>, interest: number) => {
             let nextPortfolioState = acc[acc.length - 1];
-            return [...acc, this.progressYear({...nextPortfolioState, interest})]
+            return [...acc, this.progressYear({ ...nextPortfolioState, interest })]
         }, [initialPortfolioState]);
 
         return { vals: f.map(it => (it.isaValue + it.pensionValue)), retirementAge: f.findIndex(d => d.retired) - 1, success: f[f.length - 1].success };
@@ -135,9 +119,9 @@ export default class SimulationRunner {
         return { retired, deferredRetirementCounter };
     }
 
-    private progressYear = (state: PortfolioState) : PortfolioState => {
+    private progressYear = (state: PortfolioState): PortfolioState => {
 
-        let { isaValue, pensionValue, interest, retired, age, deferredRetirementCounter, success} = state;
+        let { isaValue, pensionValue, interest, retired, age, deferredRetirementCounter, success } = state;
         ({ retired, deferredRetirementCounter } = this.isRetired(retired, age, isaValue, pensionValue, interest, deferredRetirementCounter));
 
         let nextIsaValue: number;
@@ -167,7 +151,7 @@ export default class SimulationRunner {
             }
         }
 
-        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter, age: age+1, interest }
+        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter, age: age + 1, interest }
     }
 
     private targetFundsReached = (totalPotValue: number) => {
