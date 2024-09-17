@@ -1,11 +1,12 @@
 import _ from "underscore";
 import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
 import { GetNormallyDistributedRandomNumber } from "./distribution";
+import { RetirementStrategy, SwrRetirementStrategy } from "./RetirementStrategy";
 
-const statePensionAge = 68;
-const earlyPensionAge = statePensionAge - 10;
+export const statePensionAge = 68;
+export const earlyPensionAge = statePensionAge - 10;
 
-interface PortfolioState {
+export interface PortfolioState {
     age: number,
     isaValue: number,
     pensionValue: number,
@@ -23,7 +24,7 @@ export default class SimulationRunner {
     readonly annualPensionContribution: number;
     readonly annualDrawdown: number;
     readonly distributionData: RiskAppetite[];
-    readonly safeWithdrawalRate: number;
+    readonly retirementStrategy: RetirementStrategy;
 
     constructor(
         { age, initialIsaValue, annualIsaContribution, initialPensionValue, annualPensionContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
@@ -34,8 +35,8 @@ export default class SimulationRunner {
         this.initialPensionValue = initialPensionValue;
         this.annualPensionContribution = annualPensionContribution;
         this.annualDrawdown = annualDrawdown;
-        this.safeWithdrawalRate = safeWithdrawalRate
         this.distributionData = distributionData;
+        this.retirementStrategy = new SwrRetirementStrategy(this.annualDrawdown, safeWithdrawalRate);
     }
 
     Run = (): SimulationResults => {
@@ -93,36 +94,10 @@ export default class SimulationRunner {
             .reduce((sum, d) => sum + d, 0);
     }
 
-    private isRetired = (
-        retired: boolean,
-        age: number,
-        currentIsaValue: number,
-        currentPensionValue: number,
-        interest: number,
-        deferredRetirementCounter: number
-    ): { retired: boolean, deferredRetirementCounter: number } => {
-        if (retired || age === statePensionAge) {
-            retired = true;
-        }
-        else if (this.targetFundsReached(currentIsaValue + currentPensionValue)
-            && this.sufficientIsa(age, currentIsaValue)
-        ) {
-            if (interest < 1 && deferredRetirementCounter < 3) {
-                deferredRetirementCounter++;
-            }
-            else {
-                retired = true;
-            }
-        }
-
-
-        return { retired, deferredRetirementCounter };
-    }
-
     private progressYear = (state: PortfolioState): PortfolioState => {
 
         let { isaValue, pensionValue, interest, retired, age, deferredRetirementCounter, success } = state;
-        ({ retired, deferredRetirementCounter } = this.isRetired(retired, age, isaValue, pensionValue, interest, deferredRetirementCounter));
+        ({ retired, deferredRetirementCounter } = this.retirementStrategy.isRetired(state));
 
         let nextIsaValue: number;
         let nextPensionValue: number;
@@ -152,13 +127,5 @@ export default class SimulationRunner {
         }
 
         return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter, age: age + 1, interest }
-    }
-
-    private targetFundsReached = (totalPotValue: number) => {
-        return totalPotValue >= this.annualDrawdown / this.safeWithdrawalRate
-    }
-
-    private sufficientIsa = (age: number, isaValue: number): boolean => {
-        return isaValue >= ((earlyPensionAge - age) * this.annualDrawdown)
     }
 }
