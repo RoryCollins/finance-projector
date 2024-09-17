@@ -89,8 +89,20 @@ export default class SimulationRunner {
             .reduce((sum, d) => sum + d, 0);
     }
 
-    private progressYear = (currentIsaValue: number, currentPensionValue: number, interest: number, retired: boolean, age: number, deferredRetirementCounter: number, success: boolean) => {
-        if (!retired && this.targetFundsReached(currentIsaValue + currentPensionValue) && this.sufficientIsa(age, currentIsaValue)) {
+    private isRetired = (
+        retired: boolean,
+        age: number,
+        currentIsaValue: number,
+        currentPensionValue: number,
+        interest: number,
+        deferredRetirementCounter: number
+    ): {retired: boolean, deferredRetirementCounter: number} => {
+        if (retired || age === statePensionAge) {
+            retired = true;
+        }
+        else if (this.targetFundsReached(currentIsaValue + currentPensionValue)
+            && this.sufficientIsa(age, currentIsaValue)
+        ) {
             if (interest < 1 && deferredRetirementCounter < 3) {
                 deferredRetirementCounter++;
             }
@@ -99,9 +111,12 @@ export default class SimulationRunner {
             }
         }
 
-        if (age === statePensionAge) {
-            retired = true;
-        }
+
+        return {retired, deferredRetirementCounter};
+    }
+
+    private progressYear = (currentIsaValue: number, currentPensionValue: number, interest: number, retired: boolean, age: number, deferredRetirementCounter: number, success: boolean) => {
+        ({retired, deferredRetirementCounter} = this.isRetired(retired, age, currentIsaValue, currentPensionValue, interest, deferredRetirementCounter));
 
         let nextIsaValue: number;
         let nextPensionValue: number;
