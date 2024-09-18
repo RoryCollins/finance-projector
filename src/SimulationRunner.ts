@@ -3,9 +3,7 @@ import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
 import { GetNormallyDistributedRandomNumber } from "./distribution";
 import { RetirementStrategy } from "./RetirementStrategy";
 import { targetValueRetirementStrategy } from "./targetValueRetirementStrategy";
-
-export const statePensionAge = 68;
-export const earlyPensionAge = statePensionAge - 10;
+import { EARLY_PENSION_AGE } from "./constants";
 
 export interface PortfolioState {
     age: number,
@@ -109,7 +107,7 @@ export default class SimulationRunner {
             nextPensionValue = (pensionValue + this.annualPensionContribution) * interest;
         }
         else {
-            if (age < earlyPensionAge) {
+            if (age < EARLY_PENSION_AGE) {
                 success = isaValue >= this.annualDrawdown;
                 nextIsaValue = (isaValue - this.annualDrawdown) * interest;
                 nextPensionValue = pensionValue * interest;

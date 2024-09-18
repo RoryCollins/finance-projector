@@ -1,3 +1,4 @@
+import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
 import { SimulationData, StatisticalModel } from "./interfaces";
 import { RetirementStrategy } from "./RetirementStrategy";
 import SimulationRunner, { PortfolioState } from "./SimulationRunner"
@@ -8,8 +9,6 @@ class NeverRetire implements RetirementStrategy {
     }
 }
 
-const statePensionAge = 68;
-const earlyPensionAge = statePensionAge - 10;
 const NO_GROWTH: StatisticalModel = { mean: 1, standardDeviation: 0 }
 const NEVER_RETIRE = new NeverRetire();
 
@@ -53,7 +52,7 @@ it("Retires at 68 even if other conditions not met", () => {
         { ...A_Simulation, annualDrawdown: 100000, age: 35 },
         [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(statePensionAge);
+    expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
 });
 
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
@@ -61,7 +60,7 @@ it("A portfolio with wealth stored in a pension cannot be accessed before the se
         { ...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45 },
         [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(earlyPensionAge);
+    expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE);
 });
 
 it("Early retirement can only be reached when there is enough in ISA to last until pension access", () => {
@@ -72,7 +71,7 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
         { ...A_Simulation, initialIsaValue, initialPensionValue: 1000000, annualDrawdown, age: 45 },
         [{ age: 45, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(earlyPensionAge - 4);
+    expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE - 4);
 });
 
 it("Defers retirement for up to three years when the stock market returns are negative", () => {
@@ -80,7 +79,7 @@ it("Defers retirement for up to three years when the stock market returns are ne
         { ...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45 },
         [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(earlyPensionAge + 3);
+    expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE + 3);
 });
 
 it("Determines success rate of scenario", () => {

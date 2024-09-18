@@ -1,5 +1,6 @@
+import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
 import { RetirementStrategy } from "./RetirementStrategy";
-import { earlyPensionAge, PortfolioState, statePensionAge } from "./SimulationRunner";
+import { PortfolioState } from "./SimulationRunner";
 
 
 export class targetValueRetirementStrategy implements RetirementStrategy {
@@ -16,12 +17,12 @@ export class targetValueRetirementStrategy implements RetirementStrategy {
     };
 
     private sufficientIsa = (age: number, isaValue: number): boolean => {
-        return isaValue >= ((earlyPensionAge - age) * this.annualDrawdown);
+        return isaValue >= ((EARLY_PENSION_AGE - age) * this.annualDrawdown);
     };
 
     isRetired(state: PortfolioState): { retired: boolean; deferredRetirementCounter: number; } {
         let { retired, age, isaValue, pensionValue, interest, deferredRetirementCounter } = state;
-        if (retired || age === statePensionAge) {
+        if (retired || age === STATE_PENSION_AGE) {
             retired = true;
         }
         else if (this.targetFundsReached(isaValue + pensionValue)

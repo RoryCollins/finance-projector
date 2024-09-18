@@ -1,5 +1,6 @@
 import { targetValueRetirementStrategy } from "./targetValueRetirementStrategy";
 import { PortfolioState } from "./SimulationRunner";
+import { EARLY_PENSION_AGE } from "./constants";
 
 const portfolio: PortfolioState = {
     age: 30,
@@ -15,7 +16,7 @@ it("retires when threshold reached", () => {
     const drawdown = 1000;
     const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
     const requiredTotalValue = (drawdown / .035)
-    const requiredIsaValue = (58 - portfolio.age) * drawdown
+    const requiredIsaValue = (EARLY_PENSION_AGE - portfolio.age) * drawdown
     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue);
 
     let {retired} = swrStrategy.isRetired({
@@ -30,7 +31,7 @@ it("does not retire when pension is not reached", () => {
     const drawdown = 1000;
     const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
     const requiredTotalValue = (drawdown / .035)
-    const requiredIsaValue = (58 - portfolio.age) * drawdown
+    const requiredIsaValue = (EARLY_PENSION_AGE - portfolio.age) * drawdown
     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue) - 1;
 
     let {retired} = swrStrategy.isRetired({
@@ -45,7 +46,7 @@ it("does not retire when isa is not reached", () => {
     const drawdown = 1000;
     const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
     const requiredTotalValue = (drawdown / .035)
-    const requiredIsaValue = ((58 - portfolio.age) * drawdown) - 1
+    const requiredIsaValue = ((EARLY_PENSION_AGE - portfolio.age) * drawdown) - 1
     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue);
 
     let {retired} = swrStrategy.isRetired({
