@@ -9,8 +9,11 @@ export default class targetAgeRetirementStrategy implements RetirementStrategy {
     }
 
     isRetired(state: PortfolioState): PortfolioState {
+        if(state.retired) {
+            return state;
+        }
         const retired = state.age === this.targetAge;
-        const annualDrawdown = retired ? (state.isaValue + state.pensionValue) * .085 : state.annualDrawdown;
+        const annualDrawdown = retired ? (state.isaValue + state.pensionValue) * .035 : state.annualDrawdown;
         return {...state, retired, annualDrawdown};
     }
 

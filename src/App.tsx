@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import './App.css';
 import Chart from './components/Chart';
-import { TextField, Button, Box, Card, Step, InputAdornment, Select, MenuItem, CardHeader, CardContent } from '@mui/material';
+import { TextField, Button, Box, Card, Step, InputAdornment, Select, MenuItem, CardHeader, CardContent, Container } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import SimulationRunner from './SimulationRunner';
 import { SimulationResults } from './interfaces';
 import { RetirementStrategy } from './RetirementStrategy';
@@ -128,21 +129,35 @@ function App() {
       <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
       <p></p>
       {data.simulationResults
-        ? <>
-          <Card sx={{ maxWidth: 345 }}>
-            <CardContent>
-              <h2>Success Rate</h2><br />
-              <b>{(data.simulationResults.successRate * 100).toFixed(1)}%</b>
-            </CardContent>
-          </Card>
-          <Card sx={{ maxWidth: 345 }}>
-            <CardContent>
-              <h2>Annual Drawdown</h2><br />
-              <b>£{(data.simulationResults.drawdownAtRetirement).toFixed(2)}</b>
-            </CardContent>
-          </Card>
+        ? <Container>
+          <Grid container spacing={3}>
+            <Grid size={3}>
+              <Card sx={{ maxWidth: 250 }}>
+                <CardContent>
+                  <h2>Success Rate</h2><br />
+                  <b>{(data.simulationResults.successRate * 100).toFixed(1)}%</b>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={3}>
+            <Card sx={{ maxWidth: 250 }}>
+              <CardContent>
+                <h2>Annual Drawdown</h2><br />
+                <b>£{(data.simulationResults.drawdownAtRetirement).toFixed(2)}</b>
+              </CardContent>
+            </Card>
+            </Grid>
+            <Grid size={3}>
+            <Card sx={{ maxWidth: 250 }}>
+              <CardContent>
+                <h2>Retirement Age</h2><br />
+                <b>{data.simulationResults.medianRetirementAge}</b>
+              </CardContent>
+            </Card>
+            </Grid>
+          </Grid>
           <Chart chartData={data.simulationResults} />
-        </>
+        </Container>
         : <h1>No Graph Data</h1>}
     </div>
   );

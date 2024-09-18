@@ -2,6 +2,7 @@ import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
 import { SimulationData, StatisticalModel } from "./interfaces";
 import { RetirementStrategy } from "./RetirementStrategy";
 import SimulationRunner, { PortfolioState } from "./SimulationRunner"
+import targetAgeRetirementStrategy from "./targetAgeRetirementStrategy";
 
 class NeverRetire implements RetirementStrategy {
     isRetired(state: PortfolioState): PortfolioState {
@@ -46,6 +47,24 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
     expect(medianRetirementAge).toEqual(expectedRetirementAge);
     expect(annualData[annualData.length - 1].median).toEqual(0);
 });
+
+
+it("A simulation reaches target age and draws down", () => {
+    const age = 30;
+    const targetAge = 55;
+    const drawdown = 50000;
+    const contribution = 50000
+
+    const runner = new SimulationRunner(
+        { ...A_Simulation,  annualIsaContribution: contribution, annualDrawdown: drawdown, age },
+        [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }],
+        new targetAgeRetirementStrategy(55)
+    );
+    const { annualData, medianRetirementAge } = runner.Run();
+    expect(medianRetirementAge).toEqual(targetAge)
+    expect(annualData[annualData.length - 1].median).toEqual(0);
+});
+
 
 it("Retires at 68 even if other conditions not met", () => {
     const runner = new SimulationRunner(
