@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import './App.css';
 import Chart from './components/Chart';
-import { TextField, Button, Box, Card, Step, InputAdornment, Select, MenuItem } from '@mui/material';
+import { TextField, Button, Box, Card, Step, InputAdornment, Select, MenuItem, CardHeader, CardContent } from '@mui/material';
 import SimulationRunner from './SimulationRunner';
 import { SimulationResults } from './interfaces';
 import { RetirementStrategy } from './RetirementStrategy';
+import { targetValueRetirementStrategy } from './targetValueRetirementStrategy';
+import targetAgeRetirementStrategy from './targetAgeRetirementStrategy';
 
 interface StateData {
   simulationResults?: SimulationResults,
@@ -16,7 +18,7 @@ interface StateData {
   annualDrawdown: number,
   safeWithdrawalRate: number,
   retirementStrategy: string,
-  targetAge?: number,
+  targetAge: number,
 }
 
 function App() {
@@ -30,10 +32,15 @@ function App() {
     pensionContribution: 12_000,
     safeWithdrawalRate: 3.5,
     retirementStrategy: "value",
-    targetAge: undefined,
+    targetAge: 58,
   })
 
   const runSimulation = () => {
+
+    const strategy: RetirementStrategy = data.retirementStrategy == "value"
+      ? new targetValueRetirementStrategy(data.annualDrawdown, data.safeWithdrawalRate / 100)
+      : new targetAgeRetirementStrategy(data.targetAge);
+
     const runner = new SimulationRunner({
       age: data.age,
       initialIsaValue: data.initialIsa,
@@ -43,7 +50,8 @@ function App() {
       annualDrawdown: data.annualDrawdown,
       safeWithdrawalRate: data.safeWithdrawalRate / 100,
       targetAge: data.targetAge
-    }, [{ age: data.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }]);
+    }, [{ age: data.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }],
+      strategy);
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
   };
@@ -111,7 +119,7 @@ function App() {
               }} onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
             </div>
             : <div>
-              <TextField label="Age" variant="outlined" type="number" value={data.age} onChange={(e) => setData({ ...data, age: parseInt(e.target.value) })} />
+              <TextField label="Age" variant="outlined" type="number" value={data.targetAge} onChange={(e) => setData({ ...data, targetAge: parseInt(e.target.value) })} />
             </div>
           }
         </Box>
@@ -121,8 +129,18 @@ function App() {
       <p></p>
       {data.simulationResults
         ? <>
-          <Card></Card>
-          <h2>Success Rate: {(data.simulationResults.successRate * 100).toFixed(1)}%</h2>
+          <Card sx={{ maxWidth: 345 }}>
+            <CardContent>
+              <h2>Success Rate</h2><br />
+              <b>{(data.simulationResults.successRate * 100).toFixed(1)}%</b>
+            </CardContent>
+          </Card>
+          <Card sx={{ maxWidth: 345 }}>
+            <CardContent>
+              <h2>Annual Drawdown</h2><br />
+              <b>£{(data.simulationResults.drawdownAtRetirement).toFixed(2)}</b>
+            </CardContent>
+          </Card>
           <Chart chartData={data.simulationResults} />
         </>
         : <h1>No Graph Data</h1>}

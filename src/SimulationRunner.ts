@@ -45,6 +45,7 @@ export default class SimulationRunner {
     Run = (): SimulationResults => {
         const s = this.OneThousandScenarios();
         const successRate = s.filter(it => it.success).length / 1000;
+        const meanDrawdown = s.map(it => it.annualDrawdown).reduce((a,b) => a+b, 0)/s.length
         const scenarios = s.map(it => it.vals);
         const medianRetirementAge = this.age + s.map(it => it.retirementAge).sort()[s.length * .5]
         const t = _.zip(...scenarios).map(it => it.sort((a, b) => a - b))
@@ -56,14 +57,14 @@ export default class SimulationRunner {
                 median: year[year.length * .5]
             }
         });
-        return { annualData, medianRetirementAge, successRate };
+        return { annualData, medianRetirementAge, successRate, drawdownAtRetirement: meanDrawdown};
     }
 
-    private OneThousandScenarios = (): { vals: number[], retirementAge: number, success: boolean }[] => {
+    private OneThousandScenarios = (): { vals: number[], retirementAge: number, success: boolean, annualDrawdown: number }[] => {
         return Array.from({ length: 1000 }, () => this.OneScenario())
     }
 
-    private OneScenario = (): { vals: number[], retirementAge: number, success: boolean } => {
+    private OneScenario = (): { vals: number[], retirementAge: number, success: boolean, annualDrawdown: number } => {
 
         const returns = this.getFiftyYearsOfReturns();
 
@@ -83,7 +84,12 @@ export default class SimulationRunner {
             return [...acc, this.progressYear({ ...nextPortfolioState, interest })]
         }, [initialPortfolioState]);
 
-        return { vals: f.map(it => (it.isaValue + it.pensionValue)), retirementAge: f.findIndex(d => d.retired) - 1, success: f[f.length - 1].success };
+        return { 
+            vals: f.map(it => (it.isaValue + it.pensionValue)), 
+            retirementAge: f.findIndex(d => d.retired) - 1, 
+            success: f[f.length - 1].success,
+            annualDrawdown: f[f.length-1].annualDrawdown,
+        };
     }
 
     private getFiftyYearsOfReturns = (): number[] => {
