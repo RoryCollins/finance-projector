@@ -20,7 +20,7 @@ export class targetValueRetirementStrategy implements RetirementStrategy {
         return isaValue >= ((EARLY_PENSION_AGE - age) * this.annualDrawdown);
     };
 
-    isRetired(state: PortfolioState): { retired: boolean; deferredRetirementCounter: number; } {
+    isRetired(state: PortfolioState): PortfolioState {
         let { retired, age, isaValue, pensionValue, interest, deferredRetirementCounter } = state;
         if (retired || age === STATE_PENSION_AGE) {
             retired = true;
@@ -35,7 +35,7 @@ export class targetValueRetirementStrategy implements RetirementStrategy {
             }
         }
 
-        return { retired, deferredRetirementCounter };
+        return {...state, retired, deferredRetirementCounter };
 
     }
 }

@@ -12,7 +12,8 @@ export interface PortfolioState {
     interest: number,
     retired: boolean,
     deferredRetirementCounter: number,
-    success: boolean
+    annualDrawdown: number,
+    success: boolean,
 }
 
 export default class SimulationRunner {
@@ -21,12 +22,13 @@ export default class SimulationRunner {
     readonly annualIsaContribution: number;
     readonly initialPensionValue: number;
     readonly annualPensionContribution: number;
-    readonly annualDrawdown: number;
     readonly distributionData: RiskAppetite[];
     readonly retirementStrategy: RetirementStrategy;
+    readonly targetAge?: number;
+    readonly annualDrawdown: number;
 
     constructor(
-        { age, initialIsaValue, annualIsaContribution, initialPensionValue, annualPensionContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
+        { age, initialIsaValue, annualIsaContribution, initialPensionValue, annualPensionContribution, annualDrawdown, safeWithdrawalRate, targetAge }: SimulationData,
         distributionData: RiskAppetite[],
         retirementStrategy: RetirementStrategy = new targetValueRetirementStrategy(annualDrawdown, safeWithdrawalRate)) {
         this.age = age;
@@ -37,6 +39,7 @@ export default class SimulationRunner {
         this.annualDrawdown = annualDrawdown;
         this.distributionData = distributionData;
         this.retirementStrategy = retirementStrategy;
+        this.targetAge = targetAge;
     }
 
     Run = (): SimulationResults => {
@@ -71,7 +74,8 @@ export default class SimulationRunner {
             interest: 0,
             retired: false,
             deferredRetirementCounter: 0,
-            success: true
+            success: true,
+            annualDrawdown: this.annualDrawdown,
         }
 
         const f = returns.reduce((acc: Array<PortfolioState>, interest: number) => {
@@ -96,8 +100,8 @@ export default class SimulationRunner {
 
     private progressYear = (state: PortfolioState): PortfolioState => {
 
-        let { isaValue, pensionValue, interest, retired, age, deferredRetirementCounter, success } = state;
-        ({ retired, deferredRetirementCounter } = this.retirementStrategy.isRetired(state));
+        state = this.retirementStrategy.isRetired(state);
+        let { isaValue, pensionValue, interest, retired, age, deferredRetirementCounter, success, annualDrawdown } = state;
 
         let nextIsaValue: number;
         let nextPensionValue: number;
@@ -108,24 +112,24 @@ export default class SimulationRunner {
         }
         else {
             if (age < EARLY_PENSION_AGE) {
-                success = isaValue >= this.annualDrawdown;
-                nextIsaValue = (isaValue - this.annualDrawdown) * interest;
+                success = isaValue >= annualDrawdown;
+                nextIsaValue = (isaValue - annualDrawdown) * interest;
                 nextPensionValue = pensionValue * interest;
             }
             else {
-                success = (isaValue + pensionValue) >= this.annualDrawdown;
-                if (pensionValue < this.annualDrawdown) {
-                    let remainder = this.annualDrawdown - pensionValue;
+                success = (isaValue + pensionValue) >= annualDrawdown;
+                if (pensionValue < annualDrawdown) {
+                    let remainder = annualDrawdown - pensionValue;
                     nextPensionValue = 0;
                     nextIsaValue = (isaValue - remainder) * interest;
                 }
                 else {
-                    nextPensionValue = (pensionValue - this.annualDrawdown) * interest;
+                    nextPensionValue = (pensionValue - annualDrawdown) * interest;
                     nextIsaValue = isaValue * interest;
                 }
             }
         }
 
-        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter, age: age + 1, interest }
+        return { isaValue: nextIsaValue, pensionValue: nextPensionValue, retired, success, deferredRetirementCounter, age: age + 1, interest, annualDrawdown }
     }
 }

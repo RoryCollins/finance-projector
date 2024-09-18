@@ -4,8 +4,8 @@ import { RetirementStrategy } from "./RetirementStrategy";
 import SimulationRunner, { PortfolioState } from "./SimulationRunner"
 
 class NeverRetire implements RetirementStrategy {
-    isRetired(_: PortfolioState): { retired: boolean; deferredRetirementCounter: number; } {
-        return {retired: false, deferredRetirementCounter: 0}
+    isRetired(state: PortfolioState): PortfolioState {
+        return {...state, retired: false};
     }
 }
 

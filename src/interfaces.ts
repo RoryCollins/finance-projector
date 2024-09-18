@@ -6,6 +6,7 @@ export interface SimulationData {
     annualPensionContribution: number;
     annualDrawdown: number;
     safeWithdrawalRate: number;
+    targetAge?: number;
 }
 
 export interface RiskAppetite {

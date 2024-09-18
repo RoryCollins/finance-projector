@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import './App.css';
 import Chart from './components/Chart';
-import { TextField, Button, Box, Card, Step, InputAdornment } from '@mui/material';
+import { TextField, Button, Box, Card, Step, InputAdornment, Select, MenuItem } from '@mui/material';
 import SimulationRunner from './SimulationRunner';
 import { SimulationResults } from './interfaces';
+import { RetirementStrategy } from './RetirementStrategy';
 
 interface StateData {
   simulationResults?: SimulationResults,
@@ -14,6 +15,8 @@ interface StateData {
   pensionContribution: number,
   annualDrawdown: number,
   safeWithdrawalRate: number,
+  retirementStrategy: string,
+  targetAge?: number,
 }
 
 function App() {
@@ -25,7 +28,9 @@ function App() {
     initialPension: 30_000,
     isaContribution: 5_000,
     pensionContribution: 12_000,
-    safeWithdrawalRate: 3.5
+    safeWithdrawalRate: 3.5,
+    retirementStrategy: "value",
+    targetAge: undefined,
   })
 
   const runSimulation = () => {
@@ -36,7 +41,8 @@ function App() {
       annualIsaContribution: data.isaContribution,
       annualPensionContribution: data.pensionContribution,
       annualDrawdown: data.annualDrawdown,
-      safeWithdrawalRate: data.safeWithdrawalRate / 100
+      safeWithdrawalRate: data.safeWithdrawalRate / 100,
+      targetAge: data.targetAge
     }, [{ age: data.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }]);
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
@@ -81,20 +87,35 @@ function App() {
             htmlInput: { step: 1000 }
           }} onChange={(e) => setData({ ...data, pensionContribution: parseInt(e.target.value) })} />
         </div>
-        <div>
-          <TextField label="Annual Drawdown" variant="outlined" type="number" value={data.annualDrawdown} slotProps={{
-            input: {
-              startAdornment: <InputAdornment position="start">£</InputAdornment>,
-            },
-            htmlInput: { step: 1000 }
-          }} onChange={(e) => setData({ ...data, annualDrawdown: parseInt(e.target.value) })} />
-          <TextField label="Safe Withdrawal Rate (%)" variant="outlined" type="number" value={data.safeWithdrawalRate} slotProps={{
-            input: {
-              startAdornment: <InputAdornment position="start">%</InputAdornment>,
-            },
-            htmlInput: { step: 0.1 }
-          }} onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
-        </div>
+
+        <Box>
+          <div>
+            <Select value={data.retirementStrategy} onChange={(e) => setData({ ...data, retirementStrategy: e.target.value })} >
+              <MenuItem value="age">Find Retirement Allowance</MenuItem>
+              <MenuItem value="value">Find Retirement Age</MenuItem>
+            </Select>
+          </div>
+          {data.retirementStrategy == "value"
+            ? <div>
+              <TextField label="Annual Drawdown" variant="outlined" type="number" value={data.annualDrawdown} slotProps={{
+                input: {
+                  startAdornment: <InputAdornment position="start">£</InputAdornment>,
+                },
+                htmlInput: { step: 1000 }
+              }} onChange={(e) => setData({ ...data, annualDrawdown: parseInt(e.target.value) })} />
+              <TextField label="Safe Withdrawal Rate (%)" variant="outlined" type="number" value={data.safeWithdrawalRate} slotProps={{
+                input: {
+                  startAdornment: <InputAdornment position="start">%</InputAdornment>,
+                },
+                htmlInput: { step: 0.1 }
+              }} onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
+            </div>
+            : <div>
+              <TextField label="Age" variant="outlined" type="number" value={data.age} onChange={(e) => setData({ ...data, age: parseInt(e.target.value) })} />
+            </div>
+          }
+        </Box>
+
       </Box>
       <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
       <p></p>

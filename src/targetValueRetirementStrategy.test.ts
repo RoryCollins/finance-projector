@@ -9,7 +9,8 @@ const portfolio: PortfolioState = {
     interest: 1,
     retired: false,
     deferredRetirementCounter: 0,
-    success: false
+    success: false,
+    annualDrawdown: 30000
 }
 
 it("retires when threshold reached", () => {
