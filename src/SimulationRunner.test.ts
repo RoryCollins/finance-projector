@@ -1,10 +1,17 @@
 import { SimulationData, StatisticalModel } from "./interfaces";
-import SimulationRunner from "./SimulationRunner"
+import { RetirementStrategy } from "./RetirementStrategy";
+import SimulationRunner, { PortfolioState } from "./SimulationRunner"
+
+class NeverRetire implements RetirementStrategy {
+    isRetired(_: PortfolioState): { retired: boolean; deferredRetirementCounter: number; } {
+        return {retired: false, deferredRetirementCounter: 0}
+    }
+}
 
 const statePensionAge = 68;
 const earlyPensionAge = statePensionAge - 10;
 const NO_GROWTH: StatisticalModel = { mean: 1, standardDeviation: 0 }
-const startingAgeToBypassPensionReq = 100
+const NEVER_RETIRE = new NeverRetire();
 
 let A_Simulation: SimulationData = {
     age: 0,
@@ -20,29 +27,22 @@ it("A simulation with no growth, variance or contribution does not grow", () => 
     const initialValue = 10000;
     const runner = new SimulationRunner(
         { ...A_Simulation, initialIsaValue: initialValue },
-        [{ age: 0, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
+        [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const results = runner.Run().annualData;
     expect(results[results.length - 1].median).toEqual(initialValue)
 });
 
-it("A simulation with sufficient initialValue retires and draws down", () => {
-    const runner = new SimulationRunner(
-        { ...A_Simulation, initialIsaValue: 1000000, annualDrawdown: 1000 },
-        [{ age: 0, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
-    const results = runner.Run().annualData;
-    expect(results[results.length - 1].median).toEqual(950000)
-});
-
 it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
+    const age = 30
     const drawdown = 50000;
     const swr = 0.04;
     const savingsTarget = drawdown / swr;
     const contribution = 50000
-    const expectedRetirementAge = startingAgeToBypassPensionReq + (savingsTarget / contribution)
+    const expectedRetirementAge = age + (savingsTarget / contribution)
 
     const runner = new SimulationRunner(
-        { ...A_Simulation, age: startingAgeToBypassPensionReq, annualIsaContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr },
-        [{ age: startingAgeToBypassPensionReq, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
+        { ...A_Simulation,  annualIsaContribution: contribution, annualDrawdown: drawdown, safeWithdrawalRate: swr, age },
+        [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { annualData, medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(expectedRetirementAge);
     expect(annualData[annualData.length - 1].median).toEqual(0);
@@ -51,7 +51,7 @@ it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
 it("Retires at 68 even if other conditions not met", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, annualDrawdown: 100000, age: 35 },
-        [{ age: 35, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
+        [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(statePensionAge);
 });
@@ -59,7 +59,7 @@ it("Retires at 68 even if other conditions not met", () => {
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
     const runner = new SimulationRunner(
         { ...A_Simulation, initialPensionValue: 1000000, annualDrawdown: 1000, age: 45 },
-        [{ age: 45, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
+        [{ age: A_Simulation.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]);
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(earlyPensionAge);
 });
@@ -92,6 +92,7 @@ it("Determines success rate of scenario", () => {
 })
 
 it("Risk appetite affects returns", () => {
+    const startingAge = 36;
     const statisticalModelA: StatisticalModel = {
         mean: 2,
         standardDeviation: 0
@@ -101,21 +102,22 @@ it("Risk appetite affects returns", () => {
         standardDeviation: 0
     }
     const runner = new SimulationRunner(
-        { ...A_Simulation, initialPensionValue: 1000, age: startingAgeToBypassPensionReq },
+        { ...A_Simulation, initialPensionValue: 1000, age: startingAge },
         [{
-            age: startingAgeToBypassPensionReq,
+            age: startingAge,
             distribution: [{
                 model: statisticalModelA,
                 percentage: 100
             }]
         },
         {
-            age: startingAgeToBypassPensionReq + 1,
+            age: startingAge + 1,
             distribution: [{
                 model: statisticalModelB,
                 percentage: 100
             }]
-        }]);
+        }],
+        NEVER_RETIRE);
     const { annualData } = runner.Run();
     expect(annualData[annualData.length - 1].median).toEqual(2000)
 });

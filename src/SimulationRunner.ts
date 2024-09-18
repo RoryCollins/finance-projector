@@ -1,7 +1,8 @@
 import _ from "underscore";
 import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
 import { GetNormallyDistributedRandomNumber } from "./distribution";
-import { RetirementStrategy, SwrRetirementStrategy } from "./RetirementStrategy";
+import { RetirementStrategy } from "./RetirementStrategy";
+import { targetValueRetirementStrategy } from "./targetValueRetirementStrategy";
 
 export const statePensionAge = 68;
 export const earlyPensionAge = statePensionAge - 10;
@@ -28,7 +29,8 @@ export default class SimulationRunner {
 
     constructor(
         { age, initialIsaValue, annualIsaContribution, initialPensionValue, annualPensionContribution, annualDrawdown, safeWithdrawalRate }: SimulationData,
-        distributionData: RiskAppetite[]) {
+        distributionData: RiskAppetite[],
+        retirementStrategy: RetirementStrategy = new targetValueRetirementStrategy(annualDrawdown, safeWithdrawalRate)) {
         this.age = age;
         this.initialIsaValue = initialIsaValue;
         this.annualIsaContribution = annualIsaContribution;
@@ -36,7 +38,7 @@ export default class SimulationRunner {
         this.annualPensionContribution = annualPensionContribution;
         this.annualDrawdown = annualDrawdown;
         this.distributionData = distributionData;
-        this.retirementStrategy = new SwrRetirementStrategy(this.annualDrawdown, safeWithdrawalRate);
+        this.retirementStrategy = retirementStrategy;
     }
 
     Run = (): SimulationResults => {

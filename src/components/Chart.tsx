@@ -10,7 +10,7 @@ import {
     ReferenceLine,
     CartesianGrid,
 } from 'recharts';
-import { SimulationResults } from './interfaces';
+import { SimulationResults } from '../interfaces';
 
 const numericFormatter = (n: number | number[]) : string => {
     if(Array.isArray(n)){

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import './App.css';
-import Chart from './Chart';
+import Chart from './components/Chart';
 import { TextField, Button, Box, Card, Step, InputAdornment } from '@mui/material';
 import SimulationRunner from './SimulationRunner';
 import { SimulationResults } from './interfaces';
-// import { ChartData } from './interfaces';
 
 interface StateData {
   simulationResults?: SimulationResults,
