@@ -37,7 +37,7 @@ function App() {
 
   const runSimulation = () => {
 
-    const strategy: RetirementStrategy = data.retirementStrategy == "value"
+    const strategy: RetirementStrategy = data.retirementStrategy === "value"
       ? new targetValueRetirementStrategy(data.annualDrawdown, data.safeWithdrawalRate / 100)
       : new targetAgeRetirementStrategy(data.targetAge);
 

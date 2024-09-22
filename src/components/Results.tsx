@@ -7,7 +7,7 @@ export default function Results({results}: { results?: SimulationResults }) {
     if(results === undefined) {return <></>}
     return (
         <Container maxWidth="lg">
-            <Grid container spacing={3}>
+            <Grid container spacing={3} alignItems="end">
                 <Grid size={3}>
                     <Card sx={{maxWidth: 250}}>
                         <CardContent>
