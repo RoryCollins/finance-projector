@@ -40,23 +40,6 @@ it("A simulation with no growth, variance or contribution does not grow", () => 
     expect(results[results.length - 1].median).toEqual(initialValue)
 });
 
-// it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
-//     const age = 30
-//     const drawdown = 50_000;
-//     const savingsTarget = drawdown / SAFE_WITHDRAWAL_RATE;
-//     const contribution = 50_000
-//     const expectedRetirementAge = Math.ceil(age + (savingsTarget / contribution))
-
-//     const runner = new TestSimulationRunner({
-//         ...A_Simulation,
-//         personalDetails: { ...A_Simulation.personalDetails, isaContribution: contribution, age },
-//         query: { ...A_Simulation.query, targetDrawdown: drawdown }
-//     });
-//     const { medianRetirementAge } = runner.Run();
-//     expect(medianRetirementAge).toEqual(expectedRetirementAge);
-// });
-
-
 it("A simulation reaches target age and draws down", () => {
     const age = 30;
     const targetAge = 55;
@@ -72,7 +55,6 @@ it("A simulation reaches target age and draws down", () => {
     expect(medianRetirementAge).toEqual(targetAge);
     expect(annualData[annualData.length - 1].median).toEqual(0);
 });
-
 
 it("Retires at 68 even if other conditions not met", () => {
     const runner = new TestSimulationRunner({
