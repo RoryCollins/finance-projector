@@ -20,8 +20,7 @@ const state: PortfolioState = {
 }
 
 it("retires when age reached", () => {
-    const targetAge = 55;
-    const portfolioAtTargetAge = {...state, age: targetAge, isaValue: 1_000_000};
+    const portfolioAtTargetAge = {...state, age: query.targetAge, isaValue: 1_000_000};
     const strategy = new RetirementCalculator(query);
     const {retired} = strategy.updateRetirementState(portfolioAtTargetAge);
     expect(retired).toBe(true)
