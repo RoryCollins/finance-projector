@@ -5,9 +5,6 @@ import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 import SimulationRunner from './SimulationRunner';
 import { PersonalDetails, QueryDetails, SimulationResults } from './interfaces';
-import { RetirementStrategy } from './RetirementStrategy';
-import { targetValueRetirementStrategy } from './targetValueRetirementStrategy';
-import targetAgeRetirementStrategy from './targetAgeRetirementStrategy';
 import Results from "./components/Results";
 import { PersonalDetailsForm } from "./components/PersonalDetailsForm";
 import { QueryForm } from './components/QueryForm';
@@ -52,6 +49,7 @@ function App() {
     queryDetails: {
       targetAge: 58,
       targetDrawdown: 20_000,
+      deferInCrash: true
     }
   })
 

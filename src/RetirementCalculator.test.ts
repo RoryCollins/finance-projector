@@ -1,5 +1,5 @@
 import { SAFE_WITHDRAWAL_RATE } from "./constants";
-import { RetirementCalculator } from "./RetirementStrategy";
+import { RetirementCalculator } from "./RetirementCalculator";
 import { PortfolioState } from "./SimulationRunner";
 
 const state: PortfolioState = {

@@ -1,9 +1,8 @@
 import _ from "underscore";
 import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
 import { GetNormallyDistributedRandomNumber } from "./distribution";
-import { RetirementCalculator, RetirementStrategy } from "./RetirementStrategy";
+import { RetirementCalculator } from "./RetirementCalculator";
 import { EARLY_PENSION_AGE } from "./constants";
-import targetAgeRetirementStrategy from "./targetAgeRetirementStrategy";
 
 export interface PortfolioState {
     age: number,

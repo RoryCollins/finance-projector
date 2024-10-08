@@ -1,10 +1,6 @@
 import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
 import { PortfolioState } from "./SimulationRunner";
 
-export abstract class RetirementStrategy {
-    abstract isRetired(state: PortfolioState): PortfolioState;
-}
-
 export class RetirementCalculator {
     private targetAge: number
     private targetDrawdown: number

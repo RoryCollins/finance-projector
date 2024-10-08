@@ -1,14 +1,6 @@
-import exp from "constants";
 import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE, STATE_PENSION_AGE } from "./constants";
 import { RiskAppetite, SimulationData, StatisticalModel } from "./interfaces";
-import { RetirementStrategy } from "./RetirementStrategy";
 import SimulationRunner, { PortfolioState } from "./SimulationRunner"
-
-class NeverRetire implements RetirementStrategy {
-    isRetired(state: PortfolioState): PortfolioState {
-        return { ...state, retired: false };
-    }
-}
 
 class TestSimulationRunner extends SimulationRunner {
     constructor(
@@ -21,7 +13,6 @@ class TestSimulationRunner extends SimulationRunner {
 }
 
 const NO_GROWTH: StatisticalModel = { mean: 1, standardDeviation: 0 }
-const NEVER_RETIRE = new NeverRetire();
 
 let A_Simulation: SimulationData = {
     personalDetails: {
@@ -33,7 +24,8 @@ let A_Simulation: SimulationData = {
     },
     query: {
         targetDrawdown: 0,
-        targetAge: 100
+        targetAge: 100, 
+        deferInCrash: false 
     }
 }
 
@@ -73,7 +65,7 @@ it("A simulation reaches target age and draws down", () => {
     const runner = new TestSimulationRunner(
         {
             personalDetails: { ...A_Simulation.personalDetails, isaContribution, age },
-            query: { targetAge, targetDrawdown: 50_000 }
+            query: { targetAge, targetDrawdown: 50_000, deferInCrash: false }
         }
     );
     const { medianRetirementAge, annualData } = runner.Run();
@@ -86,7 +78,7 @@ it("Retires at 68 even if other conditions not met", () => {
     const runner = new TestSimulationRunner({
         ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 35 },
-        query: { targetAge: 100, targetDrawdown: 100_000 }
+        query: { targetAge: 100, targetDrawdown: 100_000 , deferInCrash: false }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
@@ -96,7 +88,7 @@ it("A portfolio with wealth stored in a pension cannot be accessed before the se
     const runner = new TestSimulationRunner({
         ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-        query: { targetAge:55, targetDrawdown: 1_000 }
+        query: { targetAge:55, targetDrawdown: 1_000, deferInCrash: false  }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE);
@@ -109,7 +101,7 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
     const runner = new TestSimulationRunner({
         ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000, initialIsa },
-        query: { targetAge: 45, targetDrawdown }
+        query: { targetAge: 45, targetDrawdown, deferInCrash: false  }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE - 4);
