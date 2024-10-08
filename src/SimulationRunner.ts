@@ -23,7 +23,7 @@ export default class SimulationRunner {
     readonly annualPensionContribution: number;
     readonly distributionData: RiskAppetite[];
     readonly retirementStrategy: RetirementCalculator;
-    readonly targetAge: number;
+    // readonly targetAge: number;
     readonly annualDrawdown: number;
     protected simulations: number;
 
@@ -40,11 +40,11 @@ export default class SimulationRunner {
         this.initialPensionValue = personalDetails.initialPension;
         this.annualPensionContribution = personalDetails.pensionContribution;
         this.annualDrawdown = query.targetDrawdown;
-        this.targetAge = query.targetAge;
+        // this.targetAge = query.targetAge;
         this.distributionData = distributionData;
         this.simulations = 1_000;
 
-        this.retirementStrategy = new RetirementCalculator(this.targetAge, this.annualDrawdown)
+        this.retirementStrategy = new RetirementCalculator(query)
     }
 
     Run = (): SimulationResults => {

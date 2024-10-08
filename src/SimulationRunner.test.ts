@@ -1,6 +1,6 @@
-import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE, STATE_PENSION_AGE } from "./constants";
+import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
 import { RiskAppetite, SimulationData, StatisticalModel } from "./interfaces";
-import SimulationRunner, { PortfolioState } from "./SimulationRunner"
+import SimulationRunner from "./SimulationRunner"
 
 class TestSimulationRunner extends SimulationRunner {
     constructor(
@@ -112,7 +112,7 @@ it("Defers retirement for up to three years when the stock market returns are ne
         {
             ...A_Simulation,
             personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-            query: { ...A_Simulation.query, targetDrawdown: 1000 }
+            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true }
         },
         [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
 
@@ -129,17 +129,6 @@ it("Success rate is one with adequate savings", () => {
     const { successRate } = runner.Run();
     expect(successRate).toEqual(1);
 })
-
-// it("Success rate is zero when retiring early on no isa", () => {
-//     const runner = new TestSimulationRunner(
-//         {
-//             personalDetails: { ...A_Simulation.personalDetails, age: 30, pensionContribution: 24_000, initialPension: 30_000 },
-//             query: { targetAge: 55, targetDrawdown: 20_000 }
-//         },
-//     );
-//     const { successRate } = runner.Run();
-//     expect(successRate).toEqual(0);
-// })
 
 it("Risk appetite affects returns", () => {
     const startingAge = 36;
