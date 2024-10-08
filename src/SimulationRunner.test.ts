@@ -41,10 +41,12 @@ let A_Simulation: SimulationData = {
 
 it("A simulation with no growth, variance or contribution does not grow", () => {
     const initialValue = 10_000;
-    const runner = new TestSimulationRunner({
-        ...A_Simulation,
-        personalDetails: { ...A_Simulation.personalDetails, initialIsa: initialValue }
-    });
+    const runner = new TestSimulationRunner(
+        {
+            ...A_Simulation,
+            personalDetails: { ...A_Simulation.personalDetails, initialIsa: initialValue }
+        },
+        NEVER_RETIRE);
     const results = runner.Run().annualData;
     expect(results[results.length - 1].median).toEqual(initialValue)
 });
@@ -154,28 +156,21 @@ it("Success rate is zero when retiring early on no isa", () => {
 
 it("Risk appetite affects returns", () => {
     const startingAge = 36;
-    const statisticalModelA: StatisticalModel = {
-        mean: 2,
-        standardDeviation: 0
-    }
-    const statisticalModelB: StatisticalModel = {
-        mean: 1,
-        standardDeviation: 0
-    }
     const riskAppetite = [{
-            age: startingAge,
-            distribution: [{
-                model: statisticalModelA,
-                percentage: 100
-            }]
-        },
-        {
-            age: startingAge + 1,
-            distribution: [{
-                model: statisticalModelB,
-                percentage: 100
-            }]
+        age: startingAge,
+        distribution: [{
+            model: { mean: 2, standardDeviation: 0 },
+            percentage: 100
         }]
+    },
+    {
+        age: startingAge + 1,
+        distribution: [{
+            model: { mean: 1, standardDeviation: 0 },
+            percentage: 100
+        }]
+    }];
+
     const runner = new TestSimulationRunner(
         {
             ...A_Simulation,
