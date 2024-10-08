@@ -2,7 +2,6 @@ import _ from "underscore";
 import {RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
 import {GetNormallyDistributedRandomNumber} from "./distribution";
 import {RetirementStrategy} from "./RetirementStrategy";
-import {targetValueRetirementStrategy} from "./targetValueRetirementStrategy";
 import {EARLY_PENSION_AGE} from "./constants";
 
 export interface PortfolioState {
@@ -12,7 +11,7 @@ export interface PortfolioState {
     interest: number,
     retired: boolean,
     deferredRetirementCounter: number,
-    annualDrawdown: number,
+    annualDrawdown?: number,
     success: boolean,
 }
 
@@ -25,33 +24,27 @@ export default class SimulationRunner {
     readonly distributionData: RiskAppetite[];
     readonly retirementStrategy: RetirementStrategy;
     readonly targetAge?: number;
-    readonly annualDrawdown: number;
-    readonly simulations: number;
+    readonly annualDrawdown?: number;
+    protected simulations: number;
 
     constructor(
         {
-            age,
-            initialIsaValue,
-            annualIsaContribution,
-            initialPensionValue,
-            annualPensionContribution,
-            annualDrawdown,
-            targetAge
+            personalDetails,
+            query
         }: SimulationData,
         distributionData: RiskAppetite[],
-        retirementStrategy: RetirementStrategy = new targetValueRetirementStrategy(annualDrawdown),
-        simulations: number = 1000,
+        retirementStrategy: RetirementStrategy
     ) {
-        this.age = age;
-        this.initialIsaValue = initialIsaValue;
-        this.annualIsaContribution = annualIsaContribution;
-        this.initialPensionValue = initialPensionValue;
-        this.annualPensionContribution = annualPensionContribution;
-        this.annualDrawdown = annualDrawdown;
+        this.age = personalDetails.age;
+        this.initialIsaValue = personalDetails.initialIsa;
+        this.annualIsaContribution = personalDetails.isaContribution;
+        this.initialPensionValue = personalDetails.initialPension;
+        this.annualPensionContribution = personalDetails.pensionContribution;
+        this.annualDrawdown = query.targetDrawdown;
+        this.targetAge = query.targetAge;
         this.distributionData = distributionData;
         this.retirementStrategy = retirementStrategy;
-        this.targetAge = targetAge;
-        this.simulations = simulations;
+        this.simulations = 1_000;
     }
 
     Run = (): SimulationResults => {
@@ -96,7 +89,7 @@ export default class SimulationRunner {
             vals: f.map(it => (it.isaValue + it.pensionValue)),
             retirementAge: f.findIndex(d => d.retired) - 1,
             success: f[f.length - 1].success,
-            annualDrawdown: f[f.length - 1].annualDrawdown,
+            annualDrawdown: f[f.length - 1].annualDrawdown!,
         };
     }
 
@@ -134,6 +127,8 @@ export default class SimulationRunner {
             nextIsaValue = (isaValue + this.annualIsaContribution) * interest;
             nextPensionValue = (pensionValue + this.annualPensionContribution) * interest;
         } else {
+            //TODO: Don't like this. A RetiredPortfolioState would be nicer...
+            annualDrawdown = annualDrawdown!
             if (age < EARLY_PENSION_AGE) {
                 success = isaValue >= annualDrawdown;
                 nextIsaValue = (isaValue - annualDrawdown) * interest;

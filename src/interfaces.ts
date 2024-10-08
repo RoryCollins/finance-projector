@@ -1,11 +1,6 @@
 export interface SimulationData {
-    age: number;
-    initialIsaValue: number;
-    initialPensionValue: number;
-    annualIsaContribution: number;
-    annualPensionContribution: number;
-    annualDrawdown: number;
-    targetAge?: number;
+    personalDetails: PersonalDetails,
+    query: QueryDetails,
 }
 
 export interface RiskAppetite {

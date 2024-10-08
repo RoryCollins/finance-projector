@@ -1,7 +1,7 @@
 import { GetNormallyDistributedRandomNumber } from "./distribution";
 
 it("Generates random numbers in a normal distribution", () => {
-    const randomNumbers = Array.from({ length: 10000 }, () => GetNormallyDistributedRandomNumber(0, 1));
+    const randomNumbers = Array.from({ length: 10_000 }, () => GetNormallyDistributedRandomNumber(0, 1));
 
     const randomNumbersWithinOneStandardDeviation = randomNumbers.filter(i => i < 1.0 && i > -1).length;
     const randomNumbersWithinTwoStandardDeviations = randomNumbers.filter(i => i < 2.0 && i > -2).length;

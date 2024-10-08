@@ -4,13 +4,13 @@ import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE } from "./constants";
 
 const portfolio: PortfolioState = {
     age: 30,
-    isaValue: 100000,
-    pensionValue: 100000,
+    isaValue: 100_000,
+    pensionValue: 100_000,
     interest: 1,
     retired: false,
     deferredRetirementCounter: 0,
     success: false,
-    annualDrawdown: 30000
+    annualDrawdown: 30_000
 }
 
 it("retires when threshold reached", () => {

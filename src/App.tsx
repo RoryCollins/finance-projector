@@ -61,13 +61,8 @@ function App() {
       : new targetAgeRetirementStrategy(data.queryDetails.targetAge!);
 
     const runner = new SimulationRunner({
-      age: data.personalDetails.age,
-      initialIsaValue: data.personalDetails.initialIsa,
-      initialPensionValue: data.personalDetails.initialPension,
-      annualIsaContribution: data.personalDetails.isaContribution,
-      annualPensionContribution: data.personalDetails.pensionContribution,
-      annualDrawdown: data.queryDetails.targetDrawdown ?? 0,
-      targetAge: data.queryDetails.targetAge
+      personalDetails: data.personalDetails,
+      query: data.queryDetails
     }, [{ age: data.personalDetails.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }],
       strategy);
     const simulationResults = runner.Run();

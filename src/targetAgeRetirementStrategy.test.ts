@@ -4,13 +4,13 @@ import targetAgeRetirementStrategy from "./targetAgeRetirementStrategy";
 
 const state: PortfolioState = {
     age: 36,
-    isaValue: 50000,
-    pensionValue: 50000,
+    isaValue: 50_000,
+    pensionValue: 50_000,
     interest: 0,
     retired: false,
     deferredRetirementCounter: 0,
     success: false,
-    annualDrawdown: 30000
+    annualDrawdown: 30_000
 }
 
 it("retires when age reached", () => {
