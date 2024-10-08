@@ -12,7 +12,7 @@ const state: PortfolioState = {
     age: 36,
     isaValue: 60_000,
     pensionValue: 50_000,
-    interest: 0,
+    interest: 1,
     retired: false,
     deferredRetirementCounter: 0,
     success: false,
@@ -31,6 +31,13 @@ it("does not retire when not at target age", () => {
     const strategy = new RetirementCalculator(query);
     const {retired} = strategy.updateRetirementState(state);
     expect(retired).toBe(false)
+});
+
+it("defers retirement when interest below 1", () => {
+    const strategy = new RetirementCalculator({...query, deferInCrash:true});
+    const {retired, deferredRetirementCounter} = strategy.updateRetirementState({...state, age: query.targetAge, interest: 0.99});
+    expect(retired).toBe(false)
+    expect(deferredRetirementCounter).toBe(1)
 });
 
 it("Does not retire if ISA cannot bridge to minimum pension age", () => {
