@@ -36,11 +36,10 @@ export default class SimulationRunner {
             initialPensionValue,
             annualPensionContribution,
             annualDrawdown,
-            safeWithdrawalRate,
             targetAge
         }: SimulationData,
         distributionData: RiskAppetite[],
-        retirementStrategy: RetirementStrategy = new targetValueRetirementStrategy(annualDrawdown, safeWithdrawalRate),
+        retirementStrategy: RetirementStrategy = new targetValueRetirementStrategy(annualDrawdown),
         simulations: number = 1000,
     ) {
         this.age = age;

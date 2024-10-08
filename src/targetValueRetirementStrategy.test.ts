@@ -1,6 +1,6 @@
 import { targetValueRetirementStrategy } from "./targetValueRetirementStrategy";
 import { PortfolioState } from "./SimulationRunner";
-import { EARLY_PENSION_AGE } from "./constants";
+import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE } from "./constants";
 
 const portfolio: PortfolioState = {
     age: 30,
@@ -15,8 +15,8 @@ const portfolio: PortfolioState = {
 
 it("retires when threshold reached", () => {
     const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
-    const requiredTotalValue = (drawdown / .035)
+    const swrStrategy = new targetValueRetirementStrategy(drawdown);
+    const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
     const requiredIsaValue = (EARLY_PENSION_AGE - portfolio.age) * drawdown
     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue);
 
@@ -30,8 +30,8 @@ it("retires when threshold reached", () => {
 
 it("does not retire when pension is not reached", () => {
     const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
-    const requiredTotalValue = (drawdown / .035)
+    const swrStrategy = new targetValueRetirementStrategy(drawdown);
+    const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
     const requiredIsaValue = (EARLY_PENSION_AGE - portfolio.age) * drawdown
     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue) - 1;
 
@@ -45,8 +45,8 @@ it("does not retire when pension is not reached", () => {
 
 it("does not retire when isa is not reached", () => {
     const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
-    const requiredTotalValue = (drawdown / .035)
+    const swrStrategy = new targetValueRetirementStrategy(drawdown);
+    const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
     const requiredIsaValue = ((EARLY_PENSION_AGE - portfolio.age) * drawdown) - 1
     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue);
 
@@ -60,7 +60,7 @@ it("does not retire when isa is not reached", () => {
 
 it("defers retirement in bad years", () =>{
     const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
+    const swrStrategy = new targetValueRetirementStrategy(drawdown);
 
     let {retired, deferredRetirementCounter} = swrStrategy.isRetired({
         ...portfolio,
@@ -72,9 +72,9 @@ it("defers retirement in bad years", () =>{
 
 it("does not defer retirement beyond three years", () =>{
     const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown, 0.035);
+    const swrStrategy = new targetValueRetirementStrategy(drawdown);
 
-    let {retired, deferredRetirementCounter} = swrStrategy.isRetired({
+    let {retired} = swrStrategy.isRetired({
         ...portfolio,
         interest: 0.99,
         deferredRetirementCounter: 3

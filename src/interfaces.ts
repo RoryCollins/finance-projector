@@ -5,7 +5,6 @@ export interface SimulationData {
     annualIsaContribution: number;
     annualPensionContribution: number;
     annualDrawdown: number;
-    safeWithdrawalRate: number;
     targetAge?: number;
 }
 
@@ -32,4 +31,17 @@ export interface SimulationResults {
         percentile10: number
         percentile90: number
     }[];
+}
+
+export interface PersonalDetails {
+  age: number,
+  initialIsa: number,
+  initialPension: number,
+  isaContribution: number,
+  pensionContribution: number,
+}
+
+export interface QueryDetails {
+    targetAge?: number,
+    targetDrawdown?: number
 }

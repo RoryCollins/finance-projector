@@ -1,56 +1,74 @@
 import { useState } from 'react';
 import './App.css';
-import { TextField, Button, Box, InputAdornment, Select, MenuItem } from '@mui/material';
+import { Button, Container } from '@mui/material';
+import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
+
 import SimulationRunner from './SimulationRunner';
-import { SimulationResults } from './interfaces';
+import { PersonalDetails, QueryDetails, SimulationResults } from './interfaces';
 import { RetirementStrategy } from './RetirementStrategy';
 import { targetValueRetirementStrategy } from './targetValueRetirementStrategy';
 import targetAgeRetirementStrategy from './targetAgeRetirementStrategy';
 import Results from "./components/Results";
+import { PersonalDetailsForm } from "./components/PersonalDetailsForm";
+import { QueryForm } from './components/QueryForm';
 
 interface StateData {
   simulationResults?: SimulationResults,
-  age: number,
-  initialIsa: number,
-  initialPension: number,
-  isaContribution: number,
-  pensionContribution: number,
-  annualDrawdown: number,
-  safeWithdrawalRate: number,
-  retirementStrategy: string,
-  targetAge: number,
+  personalDetails: PersonalDetails,
+  queryDetails: QueryDetails
 }
+
+const rows: GridRowsProp = [
+  {
+    id: 1,
+    name: "stocks",
+    mean: 7,
+    standardDev: 20
+  },
+  {
+    id: 2,
+    name: "bonds",
+    mean: 3,
+    standardDev: 5
+  },
+];
+
+const columns: GridColDef[] = [
+  { field: 'name', headerName: 'Name' },
+  { field: 'mean', headerName: 'Mean', type: 'number', editable: true },
+  { field: 'standardDev', headerName: 'Standard Deviation', type: 'number', editable: true },
+]
 
 function App() {
   const [data, setData] = useState<StateData>({
     simulationResults: undefined,
-    age: 30,
-    annualDrawdown: 20000,
-    initialIsa: 10000,
-    initialPension: 30_000,
-    isaContribution: 5_000,
-    pensionContribution: 12_000,
-    safeWithdrawalRate: 3.5,
-    retirementStrategy: "value",
-    targetAge: 58,
+    personalDetails: {
+      age: 30,
+      initialIsa: 10_000,
+      initialPension: 30_000,
+      isaContribution: 5_000,
+      pensionContribution: 12_000,
+    },
+    queryDetails: {
+      targetAge: undefined,
+      targetDrawdown: undefined
+    }
   })
 
   const runSimulation = () => {
-
-    const strategy: RetirementStrategy = data.retirementStrategy === "value"
-      ? new targetValueRetirementStrategy(data.annualDrawdown, data.safeWithdrawalRate / 100)
-      : new targetAgeRetirementStrategy(data.targetAge);
+    const strategy: RetirementStrategy = Number.isNaN(data.queryDetails.targetAge)
+      ? new targetValueRetirementStrategy(data.queryDetails.targetDrawdown!)
+      : new targetAgeRetirementStrategy(data.queryDetails.targetAge!);
 
     const runner = new SimulationRunner({
-      age: data.age,
-      initialIsaValue: data.initialIsa,
-      initialPensionValue: data.initialPension,
-      annualIsaContribution: data.isaContribution,
-      annualPensionContribution: data.pensionContribution,
-      annualDrawdown: data.annualDrawdown,
-      safeWithdrawalRate: data.safeWithdrawalRate / 100,
-      targetAge: data.targetAge
-    }, [{ age: data.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }],
+      age: data.personalDetails.age,
+      initialIsaValue: data.personalDetails.initialIsa,
+      initialPensionValue: data.personalDetails.initialPension,
+      annualIsaContribution: data.personalDetails.isaContribution,
+      annualPensionContribution: data.personalDetails.pensionContribution,
+      annualDrawdown: data.queryDetails.targetDrawdown ?? 0,
+      targetAge: data.queryDetails.targetAge
+    }, [{ age: data.personalDetails.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }],
       strategy);
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
@@ -58,75 +76,24 @@ function App() {
 
   return (
     <div className="App">
-      <Box
+      <Container
         component="form"
         sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
         noValidate
         autoComplete="off"
       >
-        <div>
-          <TextField label="Age" variant="outlined" type="number" value={data.age} onChange={(e) => setData({ ...data, age: parseInt(e.target.value) })} />
-        </div>
-        <div>
-          <TextField label="ISA value" variant="outlined" value={data.initialIsa} type="number" slotProps={{
-            input: {
-              startAdornment: <InputAdornment position="start">£</InputAdornment>,
-            },
-            htmlInput: { step: 1000 }
-          }} onChange={(e) => setData({ ...data, initialIsa: parseInt(e.target.value) })} />
-          <TextField label="Annual ISA Contribution" variant="outlined" type="number" value={data.isaContribution} slotProps={{
-            input: {
-              startAdornment: <InputAdornment position="start">£</InputAdornment>,
-            },
-            htmlInput: { step: 1000 }
-          }} onChange={(e) => setData({ ...data, isaContribution: parseInt(e.target.value) })} />
-        </div>
-        <div>
-          <TextField label="Pension value" variant="outlined" type="number" value={data.initialPension} slotProps={{
-            input: {
-              startAdornment: <InputAdornment position="start">£</InputAdornment>,
-            },
-            htmlInput: { step: 1000 }
-          }} onChange={(e) => setData({ ...data, initialPension: parseInt(e.target.value) })} />
-          <TextField label="Annual Pension Contribution" variant="outlined" type="number" value={data.pensionContribution} slotProps={{
-            input: {
-              startAdornment: <InputAdornment position="start">£</InputAdornment>,
-            },
-            htmlInput: { step: 1000 }
-          }} onChange={(e) => setData({ ...data, pensionContribution: parseInt(e.target.value) })} />
-        </div>
 
-        <Box>
-          <div>
-            <Select value={data.retirementStrategy} onChange={(e) => setData({ ...data, retirementStrategy: e.target.value })} >
-              <MenuItem value="age">Find Retirement Allowance</MenuItem>
-              <MenuItem value="value">Find Retirement Age</MenuItem>
-            </Select>
-          </div>
-          {data.retirementStrategy === "value"
-            ? <div>
-              <TextField label="Annual Drawdown" variant="outlined" type="number" value={data.annualDrawdown} slotProps={{
-                input: {
-                  startAdornment: <InputAdornment position="start">£</InputAdornment>,
-                },
-                htmlInput: { step: 1000 }
-              }} onChange={(e) => setData({ ...data, annualDrawdown: parseInt(e.target.value) })} />
-              <TextField label="Safe Withdrawal Rate (%)" variant="outlined" type="number" value={data.safeWithdrawalRate} slotProps={{
-                input: {
-                  startAdornment: <InputAdornment position="start">%</InputAdornment>,
-                },
-                htmlInput: { step: 0.1 }
-              }} onChange={(e) => setData({ ...data, safeWithdrawalRate: parseFloat(e.target.value) })} />
-            </div>
-            : <div>
-              <TextField label="Age" variant="outlined" type="number" value={data.targetAge} onChange={(e) => setData({ ...data, targetAge: parseInt(e.target.value) })} />
-            </div>
-          }
-        </Box>
+        <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
+        
+        <QueryForm data={data.queryDetails} onChange={(newState:QueryDetails) => setData({ ...data, queryDetails: newState})} />
 
-      </Box>
+        <Container>
+          <DataGrid rows={rows} columns={columns} hideFooter={true} />
+        </Container>
+
+      </Container>
       <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
-      <Results results={data.simulationResults}/>
+      <Results results={data.simulationResults} />
     </div>
   );
 }

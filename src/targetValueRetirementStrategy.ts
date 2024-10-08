@@ -1,19 +1,17 @@
-import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
+import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE, STATE_PENSION_AGE } from "./constants";
 import { RetirementStrategy } from "./RetirementStrategy";
 import { PortfolioState } from "./SimulationRunner";
 
 
 export class targetValueRetirementStrategy implements RetirementStrategy {
     readonly annualDrawdown: number;
-    readonly safeWithdrawalRate: number;
 
-    constructor(annualDrawdown: number, safeWithdrawalRate: number) {
+    constructor(annualDrawdown: number) {
         this.annualDrawdown = annualDrawdown;
-        this.safeWithdrawalRate = safeWithdrawalRate;
     }
 
     private targetFundsReached = (totalPotValue: number) => {
-        return totalPotValue >= this.annualDrawdown / this.safeWithdrawalRate;
+        return totalPotValue >= this.annualDrawdown / SAFE_WITHDRAWAL_RATE;
     };
 
     private sufficientIsa = (age: number, isaValue: number): boolean => {

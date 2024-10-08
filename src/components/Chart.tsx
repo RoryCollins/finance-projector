@@ -25,7 +25,7 @@ export default function Chart({ chartData }: { chartData: SimulationResults }) {
     const data = chartData.annualData.map((x: any) => { return { age: x.age, percentiles: [x.percentile10, x.percentile90], median: x.median } })
     return (
         <div>
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={400} minWidth={900}>
                 <ComposedChart
                     width={900}
                     height={400}
