@@ -41,3 +41,8 @@ export interface QueryDetails {
     targetDrawdown: number,
     deferInCrash: boolean,
 }
+
+export interface ModelDetails {
+    stocks: StatisticalModel,
+    bonds: StatisticalModel
+}

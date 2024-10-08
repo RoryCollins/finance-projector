@@ -4,37 +4,20 @@ import { Button, Container } from '@mui/material';
 import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 import SimulationRunner from './SimulationRunner';
-import { PersonalDetails, QueryDetails, SimulationResults } from './interfaces';
+import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, SimulationResults } from './interfaces';
 import Results from "./components/Results";
 import { PersonalDetailsForm } from "./components/PersonalDetailsForm";
 import { QueryForm } from './components/QueryForm';
+import { ModelDetailsForm } from './components/ModelDetailsForm';
 
 interface StateData {
   simulationResults?: SimulationResults,
   personalDetails: PersonalDetails,
+  model: ModelDetails,
   queryDetails: QueryDetails
 }
 
-const rows: GridRowsProp = [
-  {
-    id: 1,
-    name: "stocks",
-    mean: 7,
-    standardDev: 20
-  },
-  {
-    id: 2,
-    name: "bonds",
-    mean: 3,
-    standardDev: 5
-  },
-];
 
-const columns: GridColDef[] = [
-  { field: 'name', headerName: 'Name' },
-  { field: 'mean', headerName: 'Mean', type: 'number', editable: true },
-  { field: 'standardDev', headerName: 'Standard Deviation', type: 'number', editable: true },
-]
 
 function App() {
   const [data, setData] = useState<StateData>({
@@ -50,21 +33,36 @@ function App() {
       targetAge: 58,
       targetDrawdown: 20_000,
       deferInCrash: true
+    },
+    model: {
+      stocks: { mean: 7, standardDeviation: 20 },
+      bonds: { mean: 3, standardDeviation: 6 }
     }
   })
 
   const runSimulation = () => {
+
+    const riskAppetite: RiskAppetite = {
+      age: data.personalDetails.age,
+      distribution: [
+        {
+          model: { mean: 1 + (data.model.stocks.mean / 100), standardDeviation: (data.model.stocks.standardDeviation / 100) },
+          percentage: 80
+        },
+        {
+          model: { mean: 1 + (data.model.bonds.mean / 100), standardDeviation: (data.model.bonds.standardDeviation / 100) },
+          percentage: 20
+        },
+      ]
+    }
+
+
     const runner = new SimulationRunner(
       {
         personalDetails: data.personalDetails,
         query: data.queryDetails
       },
-      [
-        {
-          age: data.personalDetails.age,
-          distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }]
-        }
-      ],
+      [riskAppetite],
     );
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
@@ -83,9 +81,7 @@ function App() {
 
         <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
 
-        <Container>
-          <DataGrid rows={rows} columns={columns} hideFooter={true} />
-        </Container>
+        <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails) => setData({ ...data, model: newState })} />
 
       </Container>
       <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
