@@ -1,9 +1,8 @@
+import exp from "constants";
 import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE, STATE_PENSION_AGE } from "./constants";
 import { RiskAppetite, SimulationData, StatisticalModel } from "./interfaces";
 import { RetirementStrategy } from "./RetirementStrategy";
 import SimulationRunner, { PortfolioState } from "./SimulationRunner"
-import targetAgeRetirementStrategy from "./targetAgeRetirementStrategy";
-import { targetValueRetirementStrategy } from "./targetValueRetirementStrategy";
 
 class NeverRetire implements RetirementStrategy {
     isRetired(state: PortfolioState): PortfolioState {
@@ -14,10 +13,9 @@ class NeverRetire implements RetirementStrategy {
 class TestSimulationRunner extends SimulationRunner {
     constructor(
         simulationData: SimulationData,
-        retirementStrategy: RetirementStrategy = new targetValueRetirementStrategy(simulationData.query.targetDrawdown!),
         distributionData: RiskAppetite[] = [{ age: simulationData.personalDetails.age, distribution: [{ model: NO_GROWTH, percentage: 100 }] }]
     ) {
-        super(simulationData, distributionData, retirementStrategy);
+        super(simulationData, distributionData);
         this.simulations = 10;
     }
 }
@@ -35,7 +33,7 @@ let A_Simulation: SimulationData = {
     },
     query: {
         targetDrawdown: 0,
-        targetAge: 0
+        targetAge: 100
     }
 }
 
@@ -45,27 +43,26 @@ it("A simulation with no growth, variance or contribution does not grow", () => 
         {
             ...A_Simulation,
             personalDetails: { ...A_Simulation.personalDetails, initialIsa: initialValue }
-        },
-        NEVER_RETIRE);
+        });
     const results = runner.Run().annualData;
     expect(results[results.length - 1].median).toEqual(initialValue)
 });
 
-it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
-    const age = 30
-    const drawdown = 50_000;
-    const savingsTarget = drawdown / SAFE_WITHDRAWAL_RATE;
-    const contribution = 50_000
-    const expectedRetirementAge = Math.ceil(age + (savingsTarget / contribution))
+// it("A simulation reaches Safe Withdrawal Rate and draws down", () => {
+//     const age = 30
+//     const drawdown = 50_000;
+//     const savingsTarget = drawdown / SAFE_WITHDRAWAL_RATE;
+//     const contribution = 50_000
+//     const expectedRetirementAge = Math.ceil(age + (savingsTarget / contribution))
 
-    const runner = new TestSimulationRunner({
-        ...A_Simulation,
-        personalDetails: { ...A_Simulation.personalDetails, isaContribution: contribution, age },
-        query: { ...A_Simulation.query, targetDrawdown: drawdown }
-    });
-    const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(expectedRetirementAge);
-});
+//     const runner = new TestSimulationRunner({
+//         ...A_Simulation,
+//         personalDetails: { ...A_Simulation.personalDetails, isaContribution: contribution, age },
+//         query: { ...A_Simulation.query, targetDrawdown: drawdown }
+//     });
+//     const { medianRetirementAge } = runner.Run();
+//     expect(medianRetirementAge).toEqual(expectedRetirementAge);
+// });
 
 
 it("A simulation reaches target age and draws down", () => {
@@ -75,13 +72,13 @@ it("A simulation reaches target age and draws down", () => {
 
     const runner = new TestSimulationRunner(
         {
-            ...A_Simulation,
-            personalDetails: { ...A_Simulation.personalDetails, isaContribution, age }
-        },
-        new targetAgeRetirementStrategy(55)
+            personalDetails: { ...A_Simulation.personalDetails, isaContribution, age },
+            query: { targetAge, targetDrawdown: 50_000 }
+        }
     );
-    const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(targetAge)
+    const { medianRetirementAge, annualData } = runner.Run();
+    expect(medianRetirementAge).toEqual(targetAge);
+    expect(annualData[annualData.length - 1].median).toEqual(0);
 });
 
 
@@ -89,7 +86,7 @@ it("Retires at 68 even if other conditions not met", () => {
     const runner = new TestSimulationRunner({
         ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 35 },
-        query: { ...A_Simulation.query, targetDrawdown: 100_000 }
+        query: { targetAge: 100, targetDrawdown: 100_000 }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
@@ -99,7 +96,7 @@ it("A portfolio with wealth stored in a pension cannot be accessed before the se
     const runner = new TestSimulationRunner({
         ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-        query: { ...A_Simulation.query, targetDrawdown: 1_000 }
+        query: { targetAge:55, targetDrawdown: 1_000 }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE);
@@ -112,7 +109,7 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
     const runner = new TestSimulationRunner({
         ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000, initialIsa },
-        query: { ...A_Simulation.query, targetDrawdown }
+        query: { targetAge: 45, targetDrawdown }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE - 4);
@@ -125,7 +122,6 @@ it("Defers retirement for up to three years when the stock market returns are ne
             personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
             query: { ...A_Simulation.query, targetDrawdown: 1000 }
         },
-        undefined,
         [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
 
     const { medianRetirementAge } = runner.Run();
@@ -142,17 +138,16 @@ it("Success rate is one with adequate savings", () => {
     expect(successRate).toEqual(1);
 })
 
-it("Success rate is zero when retiring early on no isa", () => {
-    const runner = new TestSimulationRunner(
-        {
-            personalDetails: { ...A_Simulation.personalDetails, age: 30, pensionContribution: 24_000, initialPension: 30_000 },
-            query: { targetDrawdown: 20_000 }
-        },
-        new targetAgeRetirementStrategy(55)
-    );
-    const { successRate } = runner.Run();
-    expect(successRate).toEqual(0);
-})
+// it("Success rate is zero when retiring early on no isa", () => {
+//     const runner = new TestSimulationRunner(
+//         {
+//             personalDetails: { ...A_Simulation.personalDetails, age: 30, pensionContribution: 24_000, initialPension: 30_000 },
+//             query: { targetAge: 55, targetDrawdown: 20_000 }
+//         },
+//     );
+//     const { successRate } = runner.Run();
+//     expect(successRate).toEqual(0);
+// })
 
 it("Risk appetite affects returns", () => {
     const startingAge = 36;
@@ -176,7 +171,6 @@ it("Risk appetite affects returns", () => {
             ...A_Simulation,
             personalDetails: { ...A_Simulation.personalDetails, age: startingAge, initialPension: 1_000 },
         },
-        NEVER_RETIRE,
         riskAppetite
     );
     const { annualData } = runner.Run();

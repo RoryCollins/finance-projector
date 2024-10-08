@@ -50,21 +50,24 @@ function App() {
       pensionContribution: 12_000,
     },
     queryDetails: {
-      targetAge: undefined,
-      targetDrawdown: undefined
+      targetAge: 58,
+      targetDrawdown: 20_000,
     }
   })
 
   const runSimulation = () => {
-    const strategy: RetirementStrategy = Number.isNaN(data.queryDetails.targetAge)
-      ? new targetValueRetirementStrategy(data.queryDetails.targetDrawdown!)
-      : new targetAgeRetirementStrategy(data.queryDetails.targetAge!);
-
-    const runner = new SimulationRunner({
-      personalDetails: data.personalDetails,
-      query: data.queryDetails
-    }, [{ age: data.personalDetails.age, distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }] }],
-      strategy);
+    const runner = new SimulationRunner(
+      {
+        personalDetails: data.personalDetails,
+        query: data.queryDetails
+      },
+      [
+        {
+          age: data.personalDetails.age,
+          distribution: [{ model: { mean: 1.06, standardDeviation: 0.15 }, percentage: 100 }]
+        }
+      ],
+    );
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
   };
@@ -79,8 +82,8 @@ function App() {
       >
 
         <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
-        
-        <QueryForm data={data.queryDetails} onChange={(newState:QueryDetails) => setData({ ...data, queryDetails: newState})} />
+
+        <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
 
         <Container>
           <DataGrid rows={rows} columns={columns} hideFooter={true} />

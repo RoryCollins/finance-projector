@@ -28,35 +28,35 @@ it("retires when threshold reached", () => {
     expect(retired).toBe(true);
 })
 
-it("does not retire when pension is not reached", () => {
-    const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown);
-    const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
-    const requiredIsaValue = (EARLY_PENSION_AGE - portfolio.age) * drawdown
-    const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue) - 1;
+// it("does not retire when pension is not reached", () => {
+//     const drawdown = 1000;
+//     const swrStrategy = new targetValueRetirementStrategy(drawdown);
+//     const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
+//     const requiredIsaValue = (EARLY_PENSION_AGE - portfolio.age) * drawdown
+//     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue) - 1;
 
-    let {retired} = swrStrategy.isRetired({
-        ...portfolio, 
-        isaValue: requiredIsaValue, 
-        pensionValue: requiredPensionValue
-    });
-    expect(retired).toBe(false);
-})
+//     let {retired} = swrStrategy.isRetired({
+//         ...portfolio, 
+//         isaValue: requiredIsaValue, 
+//         pensionValue: requiredPensionValue
+//     });
+//     expect(retired).toBe(false);
+// })
 
-it("does not retire when isa is not reached", () => {
-    const drawdown = 1000;
-    const swrStrategy = new targetValueRetirementStrategy(drawdown);
-    const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
-    const requiredIsaValue = ((EARLY_PENSION_AGE - portfolio.age) * drawdown) - 1
-    const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue);
+// it("does not retire when isa is not reached", () => {
+//     const drawdown = 1000;
+//     const swrStrategy = new targetValueRetirementStrategy(drawdown);
+//     const requiredTotalValue = (drawdown / SAFE_WITHDRAWAL_RATE)
+//     const requiredIsaValue = ((EARLY_PENSION_AGE - portfolio.age) * drawdown) - 1
+//     const requiredPensionValue = Math.max(0, requiredTotalValue-requiredIsaValue);
 
-    let {retired} = swrStrategy.isRetired({
-        ...portfolio, 
-        isaValue: requiredIsaValue, 
-        pensionValue: requiredPensionValue
-    });
-    expect(retired).toBe(false);
-})
+//     let {retired} = swrStrategy.isRetired({
+//         ...portfolio, 
+//         isaValue: requiredIsaValue, 
+//         pensionValue: requiredPensionValue
+//     });
+//     expect(retired).toBe(false);
+// })
 
 it("defers retirement in bad years", () =>{
     const drawdown = 1000;

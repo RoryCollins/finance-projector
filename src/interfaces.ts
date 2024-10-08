@@ -37,6 +37,6 @@ export interface PersonalDetails {
 }
 
 export interface QueryDetails {
-    targetAge?: number,
-    targetDrawdown?: number
+    targetAge: number,
+    targetDrawdown: number
 }
