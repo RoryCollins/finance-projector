@@ -3,6 +3,14 @@ export interface SimulationData {
     query: QueryDetails,
 }
 
+export interface RiskAppetiteView {
+    age: number;
+    distribution: {
+        modelName: string,
+        percentage: number
+    }[];
+}
+
 export interface RiskAppetite {
     age: number;
     distribution: {

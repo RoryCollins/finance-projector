@@ -3,17 +3,18 @@ import './App.css';
 import { Button, Container, Stack } from '@mui/material';
 
 import SimulationRunner from './SimulationRunner';
-import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, SimulationResults, StatisticalModel } from './interfaces';
+import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, RiskAppetiteView, SimulationResults, StatisticalModel } from './interfaces';
 import Results from "./components/Results";
 import { PersonalDetailsForm } from "./components/PersonalDetailsForm";
 import { QueryForm } from './components/QueryForm';
 import { ModelDetailsForm } from './components/ModelDetailsForm';
+import { RiskAppetiteForm } from './components/RiskAppetiteForm';
 
 interface StateData {
   simulationResults?: SimulationResults,
   personalDetails: PersonalDetails,
   model: ModelDetails[],
-  riskAppetite: { age: number, distribution: { modelName: string, percentage: number }[] }[]
+  riskAppetite: RiskAppetiteView[]
   queryDetails: QueryDetails
 }
 
@@ -36,19 +37,34 @@ function App() {
       { name: "Stocks", model: { mean: 7, standardDeviation: 20 } },
       { name: "Bonds", model: { mean: 3, standardDeviation: 6 } },
     ],
-    riskAppetite: [{
-      age: 30,
-      distribution: [
-        {
-          modelName: "Stocks",
-          percentage: 50
-        },
-        {
-          modelName: "Bonds",
-          percentage: 50
-        },
-      ]
-    }]
+    riskAppetite: [
+      {
+        age: 30,
+        distribution: [
+          {
+            modelName: "Stocks",
+            percentage: 80
+          },
+          {
+            modelName: "Bonds",
+            percentage: 20
+          },
+        ]
+      },
+      {
+        age: 50,
+        distribution: [
+          {
+            modelName: "Stocks",
+            percentage: 60
+          },
+          {
+            modelName: "Bonds",
+            percentage: 40
+          },
+        ]
+      },
+    ]
   })
 
   const runSimulation = () => {
@@ -56,12 +72,12 @@ function App() {
 
 
     data.riskAppetite.forEach((ra) => {
-      let ds: {model: StatisticalModel, percentage: number}[] = []
+      let ds: { model: StatisticalModel, percentage: number }[] = []
       ra.distribution.forEach((d) => {
         const theModel = data.model.find(m => m.name == d.modelName)!.model
-        ds = ds.concat({model: {mean: 1 + theModel.mean / 100, standardDeviation: theModel.standardDeviation/100}, percentage: d.percentage})
+        ds = ds.concat({ model: { mean: 1 + theModel.mean / 100, standardDeviation: theModel.standardDeviation / 100 }, percentage: d.percentage })
       })
-      dRiskAppetite = dRiskAppetite.concat({age: ra.age, distribution: ds})
+      dRiskAppetite = dRiskAppetite.concat({ age: ra.age, distribution: ds })
     })
 
     const runner = new SimulationRunner(
@@ -88,7 +104,7 @@ function App() {
             <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
             <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
             <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails[]) => setData({ ...data, model: newState })} />
-            {/* <RiskAppetiteForm data={data.riskAppetite} onChange={(newState: RiskAppetite[]) => setData({ ...data, riskAppetite: newState })} /> */}
+            <RiskAppetiteForm data={data.riskAppetite} onChange={(newState: RiskAppetiteView[]) => setData({ ...data, riskAppetite: newState })} />
 
           </Container>
           <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>

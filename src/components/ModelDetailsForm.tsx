@@ -1,7 +1,6 @@
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid";
-// import { ModelDetails } from "../interfaces";
 import { Container } from "@mui/material";
-import { ModelDetails, StatisticalModel } from "../interfaces";
+import { ModelDetails } from "../interfaces";
 
 export const ModelDetailsForm = ({ onChange, data }: { onChange: any, data: ModelDetails[] }) => {
     const stocks = data.find(d => d.name == "Stocks")!.model;
