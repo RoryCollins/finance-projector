@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './App.css';
-import { Button, Container } from '@mui/material';
+import { Button, Container, Stack } from '@mui/material';
 import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
 
 import SimulationRunner from './SimulationRunner';
@@ -70,22 +70,23 @@ function App() {
 
   return (
     <div className="App">
-      <Container
-        component="form"
-        sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
-        noValidate
-        autoComplete="off"
-      >
+      <Container>
+        <Stack spacing={2} maxWidth={1000}>
+          <Container
+            component="form"
+            sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' } }}
+            noValidate
+            autoComplete="off"
+          >
+            <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
+            <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
+            <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails) => setData({ ...data, model: newState })} />
 
-        <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
-
-        <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
-
-        <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails) => setData({ ...data, model: newState })} />
-
+          </Container>
+          <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
+          <Results results={data.simulationResults} />
+        </Stack>
       </Container>
-      <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>
-      <Results results={data.simulationResults} />
     </div>
   );
 }
