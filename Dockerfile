@@ -2,11 +2,11 @@ FROM node:latest
 
 WORKDIR /finance-projector/
 
-COPY /build /finance-projector/build
+COPY /public /finance-projector/public
+COPY /src /finance-projector/src
 COPY package.json /finance-projector/package.json
 COPY tsconfig.json /finance-projector/tsconfig.json
 
 RUN npm install
 
-CMD ["npm", "install -g serve"]
-CMD ["serve", "-s build"]
+CMD ["npm", "start"]
