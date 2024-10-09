@@ -2,6 +2,7 @@ import { SimulationResults } from "../interfaces";
 import { Card, CardContent, Container } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import Chart from "./Chart";
+import "./Results.css"
 
 export default function Results({ results }: { results?: SimulationResults }) {
     if (results === undefined) { return <></> }
@@ -11,9 +12,9 @@ export default function Results({ results }: { results?: SimulationResults }) {
                 spacing={3}
                 alignItems={"center"}
                 justifyContent="center">
-                <Card sx={{ width: 180, height: 190 }}>
+                <Card sx={{ width: 180, height: 190 }} >
                     <CardContent>
-                        <h2>Success Rate</h2><br />
+                        <h2>Success<br/>Rate</h2><br />
                         <b>{(results.successRate * 100).toFixed(1)}%</b>
                     </CardContent>
                 </Card>
