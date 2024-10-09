@@ -43,6 +43,6 @@ export interface QueryDetails {
 }
 
 export interface ModelDetails {
-    stocks: StatisticalModel,
-    bonds: StatisticalModel
+    name: string,
+    model: StatisticalModel
 }
