@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './App.css';
-import { Accordion, AccordionSummary, Button, Container, Stack, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Stack, Typography } from '@mui/material';
 
 import SimulationRunner from './SimulationRunner';
 import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, RiskAppetiteView, SimulationResults, StatisticalModel } from './interfaces';
@@ -58,7 +58,7 @@ function App() {
   })
 
   const runSimulation = () => {
-    let dRiskAppetite: RiskAppetite[] = []
+    let riskAppetite: RiskAppetite[] = []
 
 
     data.riskAppetite.forEach((ra) => {
@@ -67,7 +67,7 @@ function App() {
         const theModel = data.model.find(m => m.name == d.modelName)!.model
         ds = ds.concat({ model: { mean: 1 + theModel.mean / 100, standardDeviation: theModel.standardDeviation / 100 }, percentage: d.percentage })
       })
-      dRiskAppetite = dRiskAppetite.concat({ age: ra.age, distribution: ds })
+      riskAppetite = riskAppetite.concat({ age: ra.age, distribution: ds })
     })
 
     const runner = new SimulationRunner(
@@ -75,7 +75,7 @@ function App() {
         personalDetails: data.personalDetails,
         query: data.queryDetails
       },
-      dRiskAppetite,
+      riskAppetite,
     );
     const simulationResults = runner.Run();
     setData({ ...data, simulationResults });
@@ -99,8 +99,10 @@ function App() {
               >
                 <Typography>Your Details</Typography>
               </AccordionSummary>
-              <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
-              <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
+              <AccordionDetails>
+                <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
+                <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
+              </AccordionDetails>
             </Accordion>
 
             <Accordion>
@@ -111,8 +113,10 @@ function App() {
               >
                 <Typography>Nerd Zone</Typography>
               </AccordionSummary>
-              <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails[]) => setData({ ...data, model: newState })} />
-              <RiskAppetiteForm data={data.riskAppetite} onChange={(newState: RiskAppetiteView[]) => setData({ ...data, riskAppetite: newState })} />
+              <AccordionDetails>
+                <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails[]) => setData({ ...data, model: newState })} />
+                <RiskAppetiteForm data={data.riskAppetite} onChange={(newState: RiskAppetiteView[]) => setData({ ...data, riskAppetite: newState })} />
+              </AccordionDetails>
             </Accordion>
 
           </Container>

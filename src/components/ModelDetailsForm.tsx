@@ -1,5 +1,5 @@
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid";
-import { Container } from "@mui/material";
+import { Container, Typography } from "@mui/material";
 import { ModelDetails } from "../interfaces";
 
 export const ModelDetailsForm = ({ onChange, data }: { onChange: any, data: ModelDetails[] }) => {
@@ -40,6 +40,7 @@ export const ModelDetailsForm = ({ onChange, data }: { onChange: any, data: Mode
 
     return (
         <Container maxWidth="sm" >
+            <h3>Asset Class Returns</h3>
             <DataGrid
                 sx={{
                     "& .MuiDataGrid-columnHeaderTitle": {

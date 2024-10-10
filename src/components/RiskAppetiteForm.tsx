@@ -1,6 +1,6 @@
 
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid";
-import { Container } from "@mui/material";
+import { Container, Typography } from "@mui/material";
 import { ModelDetails, RiskAppetiteView } from "../interfaces";
 
 export const RiskAppetiteForm = ({ onChange, data }: { onChange: any, data: RiskAppetiteView[] }) => {
@@ -12,8 +12,8 @@ export const RiskAppetiteForm = ({ onChange, data }: { onChange: any, data: Risk
     }});
     const columns: GridColDef[] = [
         { field: 'age', headerName: 'Age', type: 'number', editable: true },
-        { field: 'stocks', headerName: 'Stocks', type: 'number', editable: true },
-        { field: 'bonds', headerName: 'Bonds', type: 'number', editable: true },
+        { field: 'stocks', headerName: 'Stocks (%)', type: 'number', editable: true },
+        { field: 'bonds', headerName: 'Bonds (%)', type: 'number', editable: true },
     ]
 
     const processRow = (updatedRow: any) => {
@@ -31,6 +31,7 @@ export const RiskAppetiteForm = ({ onChange, data }: { onChange: any, data: Risk
 
     return (
         <Container maxWidth="sm" >
+            <h3>Asset Allocation</h3>
             <DataGrid
                 rows={rows}
                 columns={columns}
