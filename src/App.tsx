@@ -84,6 +84,9 @@ function App() {
 
   return (
     <div className="App">
+      <header className='App-header'>
+        <h1>Finance Projector</h1>
+      </header>
       <Container>
         <Stack spacing={2} maxWidth={1000}>
           <Container
