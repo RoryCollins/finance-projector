@@ -33,7 +33,8 @@ function App() {
     queryDetails: {
       targetAge: 58,
       targetDrawdown: 20_000,
-      deferInCrash: true
+      deferInCrash: true,
+      deferUntilSwr: true,
     },
     model: [
       { name: "Stocks", model: { mean: 7, standardDeviation: 20 } },

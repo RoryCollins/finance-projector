@@ -48,6 +48,7 @@ export interface QueryDetails {
     targetAge: number,
     targetDrawdown: number,
     deferInCrash: boolean,
+    deferUntilSwr: boolean,
 }
 
 export interface ModelDetails {

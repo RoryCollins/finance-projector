@@ -1,3 +1,4 @@
+import { SAFE_WITHDRAWAL_RATE } from "./constants";
 import { QueryDetails } from "./interfaces";
 import { RetirementCalculator } from "./RetirementCalculator";
 import { PortfolioState } from "./SimulationRunner";
@@ -6,6 +7,7 @@ const query: QueryDetails = {
     targetAge: 55,
     targetDrawdown: 20_000,
     deferInCrash: false,
+    deferUntilSwr: false,
 }
 
 const state: PortfolioState = {
@@ -44,3 +46,17 @@ it("Does not retire if ISA cannot bridge to minimum pension age", () => {
     const {retired} = strategy.updateRetirementState({...state, isaValue: 0, pensionValue: 1_000_000, age: query.targetAge});
     expect(retired).toBe(false)
 });
+
+it("defers retirement when swr is not met", () => {
+    const strategy = new RetirementCalculator({...query, deferUntilSwr:true});
+    const {retired, deferredRetirementCounter} = strategy.updateRetirementState({...state, age: query.targetAge});
+    expect(retired).toBe(false)
+    expect(deferredRetirementCounter).toBe(1)
+})
+
+it("reduces drawdown when swr is still not met 3 years after targetAge", () => {
+    const strategy = new RetirementCalculator({...query, deferUntilSwr:true});
+    const {retired, annualDrawdown} = strategy.updateRetirementState({...state, age: query.targetAge, deferredRetirementCounter: 3});
+    expect(retired).toBe(true)
+    expect(annualDrawdown).toBe((state.isaValue + state.pensionValue) * SAFE_WITHDRAWAL_RATE)
+})

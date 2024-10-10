@@ -24,8 +24,9 @@ let A_Simulation: SimulationData = {
     },
     query: {
         targetDrawdown: 0,
-        targetAge: 100, 
-        deferInCrash: false 
+        targetAge: 100,
+        deferInCrash: false,
+        deferUntilSwr: false
     }
 }
 
@@ -48,7 +49,7 @@ it("A simulation reaches target age and draws down", () => {
     const runner = new TestSimulationRunner(
         {
             personalDetails: { ...A_Simulation.personalDetails, isaContribution, age },
-            query: { targetAge, targetDrawdown: 50_000, deferInCrash: false }
+            query: { ...A_Simulation.query, targetAge, targetDrawdown: 50_000 }
         }
     );
     const { medianRetirementAge, annualData } = runner.Run();
@@ -58,9 +59,8 @@ it("A simulation reaches target age and draws down", () => {
 
 it("Retires at 68 even if other conditions not met", () => {
     const runner = new TestSimulationRunner({
-        ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 35 },
-        query: { targetAge: 100, targetDrawdown: 100_000 , deferInCrash: false }
+        query: { ...A_Simulation.query, targetAge: 100, targetDrawdown: 100_000 }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
@@ -68,9 +68,8 @@ it("Retires at 68 even if other conditions not met", () => {
 
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
     const runner = new TestSimulationRunner({
-        ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-        query: { targetAge:55, targetDrawdown: 1_000, deferInCrash: false  }
+        query: { ...A_Simulation.query, targetAge: 55, targetDrawdown: 1_000 }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE);
@@ -81,9 +80,8 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
     const initialIsa = targetDrawdown * 4;
 
     const runner = new TestSimulationRunner({
-        ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000, initialIsa },
-        query: { targetAge: 45, targetDrawdown, deferInCrash: false  }
+        query: { ...A_Simulation.query, targetAge: 45, targetDrawdown }
     });
     const { medianRetirementAge } = runner.Run();
     expect(medianRetirementAge).toEqual(EARLY_PENSION_AGE - 4);
@@ -92,9 +90,8 @@ it("Early retirement can only be reached when there is enough in ISA to last unt
 it("Defers retirement for up to three years when the stock market returns are negative", () => {
     const runner = new TestSimulationRunner(
         {
-            ...A_Simulation,
             personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true }
+            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true, deferUntilSwr: false }
         },
         [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
 
@@ -104,7 +101,6 @@ it("Defers retirement for up to three years when the stock market returns are ne
 
 it("Success rate is one with adequate savings", () => {
     const runner = new TestSimulationRunner({
-        ...A_Simulation,
         personalDetails: { ...A_Simulation.personalDetails, age: 67, initialPension: 1_000_000 },
         query: { ...A_Simulation.query, targetDrawdown: 10_000 }
     });

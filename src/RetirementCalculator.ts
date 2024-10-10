@@ -12,11 +12,11 @@ export class RetirementCalculator {
     private deferInCrash: boolean
     private deferUntilSwr: boolean
 
-    constructor({ targetAge, targetDrawdown, deferInCrash }: QueryDetails) {
+    constructor({ targetAge, targetDrawdown, deferInCrash, deferUntilSwr }: QueryDetails) {
         this.targetAge = targetAge;
         this.targetDrawdown = targetDrawdown;
         this.deferInCrash = deferInCrash;
-        this.deferUntilSwr = true;
+        this.deferUntilSwr = deferUntilSwr;
     }
 
     updateRetirementState = (state: PortfolioState): PortfolioState => {
@@ -27,7 +27,7 @@ export class RetirementCalculator {
             return { ...state, retired: true };
         }
         if (state.age >= this.targetAge) {
-            if (this.deferInCrash && state.deferredRetirementCounter && state.interest < 1) {
+            if (this.deferInCrash && state.deferredRetirementCounter < 3 && state.interest < 1) {
                 return { ...state, deferredRetirementCounter: state.deferredRetirementCounter + 1 }
             }
             if (this.deferUntilSwr && safeWithdrawalAmount(state.isaValue + state.pensionValue) < this.targetDrawdown) {
