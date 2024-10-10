@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './App.css';
-import { Button, Container, Stack } from '@mui/material';
+import { Accordion, AccordionSummary, Button, Container, Stack, Typography } from '@mui/material';
 
 import SimulationRunner from './SimulationRunner';
 import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, RiskAppetiteView, SimulationResults, StatisticalModel } from './interfaces';
@@ -9,6 +9,8 @@ import { PersonalDetailsForm } from "./components/PersonalDetailsForm";
 import { QueryForm } from './components/QueryForm';
 import { ModelDetailsForm } from './components/ModelDetailsForm';
 import { RiskAppetiteForm } from './components/RiskAppetiteForm';
+
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface StateData {
   simulationResults?: SimulationResults,
@@ -41,27 +43,15 @@ function App() {
       {
         age: 30,
         distribution: [
-          {
-            modelName: "Stocks",
-            percentage: 80
-          },
-          {
-            modelName: "Bonds",
-            percentage: 20
-          },
+          { modelName: "Stocks", percentage: 80 },
+          { modelName: "Bonds", percentage: 20 },
         ]
       },
       {
         age: 50,
         distribution: [
-          {
-            modelName: "Stocks",
-            percentage: 60
-          },
-          {
-            modelName: "Bonds",
-            percentage: 40
-          },
+          { modelName: "Stocks", percentage: 60 },
+          { modelName: "Bonds", percentage: 40 },
         ]
       },
     ]
@@ -101,10 +91,29 @@ function App() {
             noValidate
             autoComplete="off"
           >
-            <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
-            <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
-            <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails[]) => setData({ ...data, model: newState })} />
-            <RiskAppetiteForm data={data.riskAppetite} onChange={(newState: RiskAppetiteView[]) => setData({ ...data, riskAppetite: newState })} />
+            <Accordion defaultExpanded>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1-content"
+                id="panel1-header"
+              >
+                <Typography>Your Details</Typography>
+              </AccordionSummary>
+              <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
+              <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
+            </Accordion>
+
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1-content"
+                id="panel1-header"
+              >
+                <Typography>Nerd Zone</Typography>
+              </AccordionSummary>
+              <ModelDetailsForm data={data.model} onChange={(newState: ModelDetails[]) => setData({ ...data, model: newState })} />
+              <RiskAppetiteForm data={data.riskAppetite} onChange={(newState: RiskAppetiteView[]) => setData({ ...data, riskAppetite: newState })} />
+            </Accordion>
 
           </Container>
           <Button onClick={runSimulation} variant="outlined">Run Simulation</Button>

@@ -7,7 +7,7 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
     }
     return <Container>
         <div>
-            <TextField label="Annual Drawdown" variant="outlined" type="number" value={data.targetDrawdown} slotProps={{
+            <TextField label="Annual Drawdown in Retirement" variant="outlined" type="number" value={data.targetDrawdown} slotProps={{
                 input: {
                     startAdornment: <InputAdornment position="start">£</InputAdornment>,
                 },
