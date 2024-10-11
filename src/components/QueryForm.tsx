@@ -3,28 +3,22 @@ import { QueryDetails } from "../interfaces";
 import InfoIcon from '@mui/icons-material/Info';
 import { useState } from "react";
 
-interface State {
-    crashDialog: boolean
-    swrDialog: boolean
-}
+enum foo { SEQUENCE_RISK, SWR, NONE }
 
 export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetails }) => {
-    const [state, setState] = useState<State>({crashDialog: false, swrDialog: false});
-    const openCrashDialog = () => {
-        setState({crashDialog: true, swrDialog: false})
+    const [state, setState] = useState<foo>(foo.NONE);
+    const openSequenceRiskDialog = () => {
+        setState(foo.SEQUENCE_RISK)
     }
 
-    const closeCrashDialog = () => {
-        setState({crashDialog: false, swrDialog: false});
+    const closeDialog = () => {
+        setState(foo.NONE);
     }
 
     const openSwrDialog = () => {
-        setState({crashDialog: false, swrDialog: true})
+        setState(foo.SWR)
     }
 
-    const closeSwrDialog = () => {
-        setState({crashDialog: false, swrDialog: false});
-    }
 
     const handleChange = (newState: QueryDetails) => {
         onChange(newState);
@@ -41,12 +35,12 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
         </div>
         <div>
             <FormControlLabel control={<Switch checked={data.deferInCrash} />} label="Defer retirement (up to three years) in negative market" onChange={(e) => handleChange({ ...data, deferInCrash: !(data.deferInCrash) })} />
-            <IconButton onClick={openCrashDialog}>
+            <IconButton onClick={openSequenceRiskDialog}>
                 <InfoIcon />
             </IconButton>
-            <Dialog open={state.crashDialog} onClose={closeCrashDialog}>
+            <Dialog open={state == foo.SEQUENCE_RISK} onClose={closeDialog}>
                 <DialogTitle>Sequence of Returns Risk</DialogTitle>
-                <DialogContent>The worst time to lose your savings is when you start to needing to live off them. You can't predict future returns, but at the very least you can avoid retiring when the current returns are down</DialogContent>
+                <DialogContent>The worst time to lose your savings is when you start to needing to live off them. You can't predict future returns, but at the very least you can avoid retiring when the chips are down</DialogContent>
             </Dialog>
         </div>
         <div>
@@ -54,9 +48,9 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
             <IconButton onClick={openSwrDialog}>
                 <InfoIcon />
             </IconButton>
-            <Dialog open={state.swrDialog} onClose={closeSwrDialog}>
+            <Dialog open={state == foo.SWR} onClose={closeDialog}>
                 <DialogTitle>Safe Withdrawal Rate</DialogTitle>
-                <DialogContent>A common rule-of-thumb for early retirement is that a retiree should be able to live on 4% of their portfolio at the point of retirement and then keep withdrawing that same amount (adjusted for inflation) every year afterwards. To be more conservative, this calculator uses a Safe Withdrawal Rate of 3.5%. <br/><br/> This toggle defers retirement up to three years, at which point if the target value is still not achieved, then the drawdown is recalculated.</DialogContent>
+                <DialogContent>A common rule-of-thumb for early retirement is that a retiree should be able to live on 4% of their portfolio at the point of retirement and then keep withdrawing that same amount (adjusted for inflation) every year afterwards. To be more conservative, this calculator uses a Safe Withdrawal Rate of 3.5%. <br /><br /> This toggle defers retirement up to three years, at which point if the target value is still not achieved, then the drawdown is recalculated.</DialogContent>
             </Dialog>
         </div>
     </Container>
