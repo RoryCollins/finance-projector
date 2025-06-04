@@ -25,10 +25,6 @@ export const RiskAppetiteForm = ({ data }: { onChange: any, data: RiskAppetiteVi
         return updatedRow;
     }
 
-    // const handleChange = (newState: RiskAppetiteView[]) => {
-    //     onChange(newState);
-    // }
-
     return (
         <Container maxWidth="sm" >
             <h3>Asset Allocation - Under construction! </h3>
