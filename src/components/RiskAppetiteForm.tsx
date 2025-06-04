@@ -1,14 +1,14 @@
 
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid";
-import { Container, Typography } from "@mui/material";
-import { ModelDetails, RiskAppetiteView } from "../domain/interfaces";
+import { Container } from "@mui/material";
+import { RiskAppetiteView } from "../domain/interfaces";
 
-export const RiskAppetiteForm = ({ onChange, data }: { onChange: any, data: RiskAppetiteView[] }) => {
+export const RiskAppetiteForm = ({ data }: { onChange: any, data: RiskAppetiteView[] }) => {
     const rows: GridRowsProp = data.map((it, i) => { return {
         id: i,
         age: it.age,
-        stocks: it.distribution.find(d => d.modelName == "Stocks")!.percentage,
-        bonds: it.distribution.find(d => d.modelName == "Bonds")!.percentage
+        stocks: it.distribution.find(d => d.modelName === "Stocks")!.percentage,
+        bonds: it.distribution.find(d => d.modelName === "Bonds")!.percentage
     }});
     const columns: GridColDef[] = [
         { field: 'age', headerName: 'Age', type: 'number', editable: true },
@@ -25,9 +25,9 @@ export const RiskAppetiteForm = ({ onChange, data }: { onChange: any, data: Risk
         return updatedRow;
     }
 
-    const handleChange = (newState: RiskAppetiteView[]) => {
-        onChange(newState);
-    }
+    // const handleChange = (newState: RiskAppetiteView[]) => {
+    //     onChange(newState);
+    // }
 
     return (
         <Container maxWidth="sm" >

@@ -65,7 +65,7 @@ function App() {
     data.riskAppetite.forEach((ra) => {
       let ds: { model: StatisticalModel, percentage: number }[] = []
       ra.distribution.forEach((d) => {
-        const theModel = data.model.find(m => m.name == d.modelName)!.model
+        const theModel = data.model.find(m => m.name === d.modelName)!.model
         ds = ds.concat({ model: { mean: 1 + theModel.mean / 100, standardDeviation: theModel.standardDeviation / 100 }, percentage: d.percentage })
       })
       riskAppetite = riskAppetite.concat({ age: ra.age, distribution: ds })
