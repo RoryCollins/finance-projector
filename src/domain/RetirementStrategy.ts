@@ -6,7 +6,7 @@ const safeWithdrawalAmount = (portfolioValue: number): number => {
     return portfolioValue * SAFE_WITHDRAWAL_RATE;
 }
 
-export class RetirementCalculator {
+export class RetirementStrategy {
     private readonly targetAge: number
     private readonly targetDrawdown: number
     private readonly deferInCrash: boolean

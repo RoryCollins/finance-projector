@@ -1,7 +1,7 @@
 import _ from "underscore";
 import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
 import { GetNormallyDistributedRandomNumber } from "./distribution";
-import { RetirementCalculator } from "./RetirementCalculator";
+import { RetirementStrategy } from "./RetirementStrategy";
 import { EARLY_PENSION_AGE } from "./constants";
 
 export interface PortfolioState {
@@ -22,7 +22,7 @@ export default class SimulationRunner {
     readonly initialPensionValue: number;
     readonly annualPensionContribution: number;
     readonly distributionData: RiskAppetite[];
-    readonly retirementStrategy: RetirementCalculator;
+    readonly retirementStrategy: RetirementStrategy;
     // readonly targetAge: number;
     readonly annualDrawdown: number;
     protected simulations: number;
@@ -44,7 +44,7 @@ export default class SimulationRunner {
         this.distributionData = distributionData;
         this.simulations = 1_000;
 
-        this.retirementStrategy = new RetirementCalculator(query)
+        this.retirementStrategy = new RetirementStrategy(query)
     }
 
     Run = (): SimulationResults => {
