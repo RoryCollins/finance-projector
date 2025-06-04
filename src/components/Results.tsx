@@ -1,4 +1,4 @@
-import { SimulationResults } from "../interfaces";
+import { SimulationResults } from "../domain/interfaces";
 import { Card, CardContent, Container, createTheme, ThemeProvider } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import Chart from "./Chart";

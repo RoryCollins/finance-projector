@@ -7,10 +7,10 @@ const safeWithdrawalAmount = (portfolioValue: number): number => {
 }
 
 export class RetirementCalculator {
-    private targetAge: number
-    private targetDrawdown: number
-    private deferInCrash: boolean
-    private deferUntilSwr: boolean
+    private readonly targetAge: number
+    private readonly targetDrawdown: number
+    private readonly deferInCrash: boolean
+    private readonly deferUntilSwr: boolean
 
     constructor({ targetAge, targetDrawdown, deferInCrash, deferUntilSwr }: QueryDetails) {
         this.targetAge = targetAge;
@@ -27,6 +27,7 @@ export class RetirementCalculator {
             return { ...state, retired: true };
         }
         if (state.age >= this.targetAge) {
+            //TODO: Decorator pattern to handle the different retirement strategies
             if (this.deferInCrash && state.deferredRetirementCounter < 3 && state.interest < 1) {
                 return { ...state, deferredRetirementCounter: state.deferredRetirementCounter + 1 }
             }

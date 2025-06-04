@@ -1,7 +1,7 @@
 
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid";
 import { Container, Typography } from "@mui/material";
-import { ModelDetails, RiskAppetiteView } from "../interfaces";
+import { ModelDetails, RiskAppetiteView } from "../domain/interfaces";
 
 export const RiskAppetiteForm = ({ onChange, data }: { onChange: any, data: RiskAppetiteView[] }) => {
     const rows: GridRowsProp = data.map((it, i) => { return {

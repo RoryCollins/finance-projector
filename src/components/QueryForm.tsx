@@ -1,5 +1,5 @@
 import { Container, TextField, InputAdornment, FormControlLabel, Switch, IconButton, Dialog, DialogTitle, DialogContent } from "@mui/material";
-import { QueryDetails } from "../interfaces";
+import { QueryDetails } from "../domain/interfaces";
 import InfoIcon from '@mui/icons-material/Info';
 import { useState } from "react";
 

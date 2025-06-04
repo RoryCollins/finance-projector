@@ -1,6 +1,6 @@
 import { TextField, InputAdornment, Container } from "@mui/material"
 import { ReactEventHandler } from "react"
-import { PersonalDetails } from "../interfaces"
+import { PersonalDetails } from "../domain/interfaces"
 
 export const PersonalDetailsForm = ({ onChange, data }: { onChange: any, data: PersonalDetails }) => {
     const handleChange = (newState: PersonalDetails) => {
