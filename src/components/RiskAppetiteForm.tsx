@@ -31,7 +31,7 @@ export const RiskAppetiteForm = ({ data }: { onChange: any, data: RiskAppetiteVi
 
     return (
         <Container maxWidth="sm" >
-            <h3>Asset Allocation</h3>
+            <h3>Asset Allocation - Under construction! </h3>
             <DataGrid
                 rows={rows}
                 columns={columns}
