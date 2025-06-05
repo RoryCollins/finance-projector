@@ -1,6 +1,6 @@
 import { SAFE_WITHDRAWAL_RATE } from "./constants";
 import { QueryDetails } from "./interfaces";
-import { RetirementStrategy } from "./RetirementStrategy";
+import { getRetirementStrategy } from "./RetirementStrategy";
 import { PortfolioState } from "./SimulationRunner";
 
 const query: QueryDetails = {
@@ -23,39 +23,39 @@ const state: PortfolioState = {
 
 it("retires when age reached", () => {
     const portfolioAtTargetAge = {...state, age: query.targetAge, isaValue: 1_000_000};
-    const strategy = new RetirementStrategy(query);
+    const strategy = getRetirementStrategy(query);
     const {retired} = strategy.updateRetirementState(portfolioAtTargetAge);
     expect(retired).toBe(true)
 });
 
 it("does not retire when not at target age", () => {
-    const strategy = new RetirementStrategy(query);
+    const strategy = getRetirementStrategy(query);
     const {retired} = strategy.updateRetirementState(state);
     expect(retired).toBe(false)
 });
 
 it("defers retirement when interest below 1", () => {
-    const strategy = new RetirementStrategy({...query, deferInCrash:true});
+    const strategy = getRetirementStrategy({...query, deferInCrash:true});
     const {retired, deferredRetirementCounter} = strategy.updateRetirementState({...state, age: query.targetAge, interest: 0.99});
     expect(retired).toBe(false)
     expect(deferredRetirementCounter).toBe(1)
 });
 
 it("Does not retire if ISA cannot bridge to minimum pension age", () => {
-    const strategy = new RetirementStrategy(query);
+    const strategy = getRetirementStrategy(query);
     const {retired} = strategy.updateRetirementState({...state, isaValue: 0, pensionValue: 1_000_000, age: query.targetAge});
     expect(retired).toBe(false)
 });
 
 it("defers retirement when swr is not met", () => {
-    const strategy = new RetirementStrategy({...query, deferUntilSwr:true});
+    const strategy = getRetirementStrategy({...query, deferUntilSwr:true});
     const {retired, deferredRetirementCounter} = strategy.updateRetirementState({...state, age: query.targetAge});
     expect(retired).toBe(false)
     expect(deferredRetirementCounter).toBe(1)
 })
 
 it("reduces drawdown when swr is still not met 3 years after targetAge", () => {
-    const strategy = new RetirementStrategy({...query, deferUntilSwr:true});
+    const strategy = getRetirementStrategy({...query, deferUntilSwr:true});
     const {retired, annualDrawdown} = strategy.updateRetirementState({...state, age: query.targetAge, deferredRetirementCounter: 3});
     expect(retired).toBe(true)
     expect(annualDrawdown).toBe((state.isaValue + state.pensionValue) * SAFE_WITHDRAWAL_RATE)

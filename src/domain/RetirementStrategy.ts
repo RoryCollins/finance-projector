@@ -6,7 +6,15 @@ const safeWithdrawalAmount = (portfolioValue: number): number => {
     return portfolioValue * SAFE_WITHDRAWAL_RATE;
 }
 
-export class RetirementStrategy {
+export const getRetirementStrategy = (query: QueryDetails): RetirementStrategy => {
+    return new BasicRetirementStrategy(query);
+}
+
+export interface  RetirementStrategy {
+    updateRetirementState: (state: PortfolioState) => PortfolioState;
+}
+
+class BasicRetirementStrategy implements RetirementStrategy {
     private readonly targetAge: number
     private readonly targetDrawdown: number
     private readonly deferInCrash: boolean
