@@ -1,54 +1,100 @@
-import { EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE, STATE_PENSION_AGE } from "./constants";
-import { QueryDetails } from "./interfaces";
-import { PortfolioState } from "./SimulationRunner";
+import {EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE} from "./constants";
+import {QueryDetails} from "./interfaces";
+import {PortfolioState} from "./SimulationRunner";
 
-const safeWithdrawalAmount = (portfolioValue: number): number => {
-    return portfolioValue * SAFE_WITHDRAWAL_RATE;
-}
+// const safeWithdrawalAmount = (portfolioValue: number): number => {
+//     return portfolioValue * SAFE_WITHDRAWAL_RATE;
+// }
 
 export const getRetirementStrategy = (query: QueryDetails): RetirementStrategy => {
-    return new BasicRetirementStrategy(query);
-}
-
-export interface  RetirementStrategy {
-    updateRetirementState: (state: PortfolioState) => PortfolioState;
-}
-
-class BasicRetirementStrategy implements RetirementStrategy {
-    private readonly targetAge: number
-    private readonly targetDrawdown: number
-    private readonly deferInCrash: boolean
-    private readonly deferUntilSwr: boolean
-
-    constructor({ targetAge, targetDrawdown, deferInCrash, deferUntilSwr }: QueryDetails) {
-        this.targetAge = targetAge;
-        this.targetDrawdown = targetDrawdown;
-        this.deferInCrash = deferInCrash;
-        this.deferUntilSwr = deferUntilSwr;
+    let strategy: RetirementStrategy = new BasicRetirementStrategy();
+    strategy = new BridgeTheGapStrategy(strategy);
+    if (query.deferInCrash) {
+        strategy = new DeferInCrashStrategy(strategy);
     }
 
-    updateRetirementState = (state: PortfolioState): PortfolioState => {
-        if (state.retired) {
-            return state;
+    // if (query.deferUntilSwr) {
+    //     strategy = new DeferUntilSwrStrategy(strategy);
+    // }
+    return strategy;
+}
+
+export interface RetirementStrategy {
+    updateRetirementState: (portfolioState: PortfolioState) => PortfolioState;
+}
+
+abstract class DeferredRetirementStrategyDecorator implements RetirementStrategy {
+    protected readonly strategy: RetirementStrategy;
+    protected readonly maxDeferredRetirementCounter: number = 3;
+
+    constructor(strategy: RetirementStrategy) {
+        this.strategy = strategy;
+    }
+
+    updateRetirementState(portfolioState: PortfolioState): PortfolioState {
+        if (portfolioState.age < portfolioState.targetAge) {
+            return portfolioState;
         }
-        if (state.age >= STATE_PENSION_AGE) {
-            return { ...state, retired: true };
+
+        // Check the inner strategy first and return if strategy failed
+        const innerState = this.strategy.updateRetirementState(portfolioState);
+        if (!innerState.retired) {
+            return innerState;
         }
-        if (state.age >= this.targetAge) {
-            //TODO: Decorator pattern to handle the different retirement strategies
-            if (this.deferInCrash && state.deferredRetirementCounter < 3 && state.interest < 1) {
-                return { ...state, deferredRetirementCounter: state.deferredRetirementCounter + 1 }
-            }
-            if (this.deferUntilSwr && safeWithdrawalAmount(state.isaValue + state.pensionValue) < this.targetDrawdown) {
-                return state.deferredRetirementCounter < 3
-                    ? { ...state, deferredRetirementCounter: state.deferredRetirementCounter + 1 }
-                    : { ...state, retired: true, annualDrawdown: safeWithdrawalAmount(state.isaValue + state.pensionValue)}
-            }
-            if (state.isaValue >= ((EARLY_PENSION_AGE - state.age) * this.targetDrawdown)) {
-                return { ...state, retired: true };
+
+        if (this.canRetire(portfolioState)){
+            return {
+                ...portfolioState,
+                retired: true,
             }
         }
 
-        return state;
+        return {
+            ...portfolioState,
+            deferredRetirementCounter: portfolioState.deferredRetirementCounter + 1,
+        }
+    }
+
+    abstract canRetire(state: PortfolioState): boolean;
+
+}
+
+class DeferInCrashStrategy extends DeferredRetirementStrategyDecorator {
+    canRetire(portfolioState: PortfolioState): boolean {
+        return this.maxDeferralReached(portfolioState.deferredRetirementCounter)
+            || portfolioState.interest >= 1;
+    }
+
+    private maxDeferralReached(currentDeferralCounter: number): boolean {
+        return currentDeferralCounter >= this.maxDeferredRetirementCounter;
+    }
+}
+
+class BridgeTheGapStrategy extends DeferredRetirementStrategyDecorator {
+    canRetire(portfolioState: PortfolioState): boolean {
+        if (portfolioState.age > EARLY_PENSION_AGE)
+            return true;
+
+        const capitalRequired = portfolioState.annualDrawdown * (EARLY_PENSION_AGE - portfolioState.age);
+        return portfolioState.isaValue >= capitalRequired;
+    }
+}
+
+
+// class DeferUntilSwrStrategy extends DeferredRetirementStrategyDecorator {
+//     canRetire(state: PortfolioState): boolean {
+//         return safeWithdrawalAmount(state.isaValue + state.pensionValue) >= state.annualDrawdown;
+//     }
+// }
+
+class BasicRetirementStrategy implements RetirementStrategy {
+    updateRetirementState = (portfolioState: PortfolioState): PortfolioState => {
+        if (portfolioState.age >= portfolioState.targetAge){
+            return {
+                ...portfolioState,
+                retired: true
+            };
+        }
+        return portfolioState;
     }
 }

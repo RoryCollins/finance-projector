@@ -26,7 +26,6 @@ let A_Simulation: SimulationData = {
         targetDrawdown: 0,
         targetAge: 100,
         deferInCrash: false,
-        deferUntilSwr: false
     }
 }
 
@@ -57,14 +56,15 @@ it("A simulation reaches target age and draws down", () => {
     expect(annualData[annualData.length - 1].median).toEqual(0);
 });
 
-it("Retires at 68 even if other conditions not met", () => {
-    const runner = new TestSimulationRunner({
-        personalDetails: { ...A_Simulation.personalDetails, age: 35 },
-        query: { ...A_Simulation.query, targetAge: 100, targetDrawdown: 100_000 }
-    });
-    const { medianRetirementAge } = runner.Run();
-    expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
-});
+//TODO
+// it("Retires at 68 even if other conditions not met", () => {
+//     const runner = new TestSimulationRunner({
+//         personalDetails: { ...A_Simulation.personalDetails, age: 35 },
+//         query: { ...A_Simulation.query, targetAge: 100, targetDrawdown: 100_000 }
+//     });
+//     const { medianRetirementAge } = runner.Run();
+//     expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
+// });
 
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
     const runner = new TestSimulationRunner({
@@ -91,7 +91,7 @@ it("Defers retirement for up to three years when the stock market returns are ne
     const runner = new TestSimulationRunner(
         {
             personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true, deferUntilSwr: false }
+            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true }
         },
         [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
 

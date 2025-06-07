@@ -11,10 +11,10 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
         setState(displayDialog.SEQUENCE_RISK)
     }
 
-    const openSwrDialog = () => {
-        setState(displayDialog.SWR)
-    }
-
+    // const openSwrDialog = () => {
+    //     setState(displayDialog.SWR)
+    // }
+    //
     const closeDialog = () => {
         setState(displayDialog.NONE);
     }
@@ -42,15 +42,15 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
                 <DialogContent>The worst time to lose your savings is when you start to needing to live off them. You can't predict future returns, but at the very least you can avoid retiring when the chips are down</DialogContent>
             </Dialog>
         </div>
-        <div>
-            <FormControlLabel control={<Switch checked={data.deferUntilSwr} />} label="Defer retirement (up to three years) if drawdown is unsafe" onChange={(_) => handleChange({ ...data, deferUntilSwr: !(data.deferUntilSwr) })} />
-            <IconButton onClick={openSwrDialog}>
-                <InfoIcon />
-            </IconButton>
-            <Dialog open={state === displayDialog.SWR} onClose={closeDialog}>
-                <DialogTitle>Safe Withdrawal Rate</DialogTitle>
-                <DialogContent>A common rule-of-thumb for early retirement is that a retiree should be able to live on 4% of their portfolio at the point of retirement and then keep withdrawing that same amount (adjusted for inflation) every year afterwards. To be more conservative, this calculator uses a Safe Withdrawal Rate of 3.5%. <br /><br /> This toggle defers retirement up to three years, at which point if the target value is still not achieved, then the drawdown is recalculated.</DialogContent>
-            </Dialog>
-        </div>
+        {/*<div>*/}
+        {/*    <FormControlLabel control={<Switch checked={data.deferUntilSwr} />} label="Defer retirement (up to three years) if drawdown is unsafe" onChange={(_) => handleChange({ ...data, deferUntilSwr: !(data.deferUntilSwr) })} />*/}
+        {/*    <IconButton onClick={openSwrDialog}>*/}
+        {/*        <InfoIcon />*/}
+        {/*    </IconButton>*/}
+        {/*    <Dialog open={state === displayDialog.SWR} onClose={closeDialog}>*/}
+        {/*        <DialogTitle>Safe Withdrawal Rate</DialogTitle>*/}
+        {/*        <DialogContent>A common rule-of-thumb for early retirement is that a retiree should be able to live on 4% of their portfolio at the point of retirement and then keep withdrawing that same amount (adjusted for inflation) every year afterwards. To be more conservative, this calculator uses a Safe Withdrawal Rate of 3.5%. <br /><br /> This toggle defers retirement up to three years, at which point if the target value is still not achieved, then the drawdown is recalculated.</DialogContent>*/}
+        {/*    </Dialog>*/}
+        {/*</div>*/}
     </Container>
 }
