@@ -26,6 +26,7 @@ let A_Simulation: SimulationData = {
         targetDrawdown: 0,
         targetAge: 100,
         deferInCrash: false,
+        bridgeTheGap: true,
     }
 }
 
@@ -81,7 +82,7 @@ it("Defers retirement for up to three years when the stock market returns are ne
     const runner = new TestSimulationRunner(
         {
             personalDetails: { ...A_Simulation.personalDetails, age: 45, initialPension: 1_000_000 },
-            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true }
+            query: { targetAge: 58, targetDrawdown: 1000, deferInCrash: true, bridgeTheGap: true }
         },
         [{ age: 45, distribution: [{ model: { mean: 0.99, standardDeviation: 0 }, percentage: 100 }] }]);
 

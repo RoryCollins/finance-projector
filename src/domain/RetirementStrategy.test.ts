@@ -6,6 +6,7 @@ const query: QueryDetails = {
     targetAge: 55,
     targetDrawdown: 20_000,
     deferInCrash: false,
+    bridgeTheGap: false
 }
 
 const state: PortfolioState = {
@@ -48,7 +49,7 @@ it("force retirement when low interest deferral cap reached", () => {
 });
 
 it("Does not retire if ISA cannot bridge to minimum pension age", () => {
-    const strategy = getRetirementStrategy(query);
+    const strategy = getRetirementStrategy({...query,  bridgeTheGap:true});
     const {retired} = strategy.updateRetirementState({...state, isaValue: 0, pensionValue: 1_000_000, age: query.targetAge});
     expect(retired).toBe(false)
 });

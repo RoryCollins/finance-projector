@@ -4,7 +4,9 @@ import {PortfolioState} from "./SimulationRunner";
 
 export const getRetirementStrategy = (query: QueryDetails): RetirementStrategy => {
     let strategy: RetirementStrategy = new BasicRetirementStrategy();
-    strategy = new BridgeTheGapStrategy(strategy);
+    if (query.bridgeTheGap){
+        strategy = new BridgeTheGapStrategy(strategy);
+    }
     if (query.deferInCrash) {
         strategy = new DeferInCrashStrategy(strategy);
     }
