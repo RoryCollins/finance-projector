@@ -1,10 +1,6 @@
-import {EARLY_PENSION_AGE, SAFE_WITHDRAWAL_RATE} from "./constants";
+import {EARLY_PENSION_AGE} from "./constants";
 import {QueryDetails} from "./interfaces";
 import {PortfolioState} from "./SimulationRunner";
-
-// const safeWithdrawalAmount = (portfolioValue: number): number => {
-//     return portfolioValue * SAFE_WITHDRAWAL_RATE;
-// }
 
 export const getRetirementStrategy = (query: QueryDetails): RetirementStrategy => {
     let strategy: RetirementStrategy = new BasicRetirementStrategy();
@@ -13,9 +9,6 @@ export const getRetirementStrategy = (query: QueryDetails): RetirementStrategy =
         strategy = new DeferInCrashStrategy(strategy);
     }
 
-    // if (query.deferUntilSwr) {
-    //     strategy = new DeferUntilSwrStrategy(strategy);
-    // }
     return strategy;
 }
 
@@ -79,13 +72,6 @@ class BridgeTheGapStrategy extends DeferredRetirementStrategyDecorator {
         return portfolioState.isaValue >= capitalRequired;
     }
 }
-
-
-// class DeferUntilSwrStrategy extends DeferredRetirementStrategyDecorator {
-//     canRetire(state: PortfolioState): boolean {
-//         return safeWithdrawalAmount(state.isaValue + state.pensionValue) >= state.annualDrawdown;
-//     }
-// }
 
 class BasicRetirementStrategy implements RetirementStrategy {
     updateRetirementState = (portfolioState: PortfolioState): PortfolioState => {

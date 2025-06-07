@@ -1,4 +1,4 @@
-import { EARLY_PENSION_AGE, STATE_PENSION_AGE } from "./constants";
+import { EARLY_PENSION_AGE } from "./constants";
 import { RiskAppetite, SimulationData, StatisticalModel } from "./interfaces";
 import SimulationRunner from "./SimulationRunner"
 
@@ -55,16 +55,6 @@ it("A simulation reaches target age and draws down", () => {
     expect(medianRetirementAge).toEqual(targetAge);
     expect(annualData[annualData.length - 1].median).toEqual(0);
 });
-
-//TODO
-// it("Retires at 68 even if other conditions not met", () => {
-//     const runner = new TestSimulationRunner({
-//         personalDetails: { ...A_Simulation.personalDetails, age: 35 },
-//         query: { ...A_Simulation.query, targetAge: 100, targetDrawdown: 100_000 }
-//     });
-//     const { medianRetirementAge } = runner.Run();
-//     expect(medianRetirementAge).toEqual(STATE_PENSION_AGE);
-// });
 
 it("A portfolio with wealth stored in a pension cannot be accessed before the set age", () => {
     const runner = new TestSimulationRunner({
