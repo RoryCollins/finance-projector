@@ -3,18 +3,18 @@ import { QueryDetails } from "../domain/interfaces";
 import InfoIcon from '@mui/icons-material/Info';
 import { useState } from "react";
 
-enum displayDialog { SEQUENCE_RISK, SWR, NONE }
+enum displayDialog { SEQUENCE_RISK, BRIDGE, NONE }
 
 export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetails }) => {
     const [state, setState] = useState<displayDialog>(displayDialog.NONE);
     const openSequenceRiskDialog = () => {
-        setState(displayDialog.SEQUENCE_RISK)
+        setState(displayDialog.SEQUENCE_RISK);
     }
 
-    // const openSwrDialog = () => {
-    //     setState(displayDialog.SWR)
-    // }
-    //
+    const openIsaBridgeDialog = () => {
+        setState(displayDialog.BRIDGE);
+    }
+
     const closeDialog = () => {
         setState(displayDialog.NONE);
     }
@@ -44,13 +44,13 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
         </div>
         <div>
             <FormControlLabel control={<Switch checked={data.bridgeTheGap} />} label="Defer retirement if ISA cannot support the gap to early pension age" onChange={(_) => handleChange({ ...data, bridgeTheGap: !(data.bridgeTheGap) })} />
-            {/*<IconButton onClick={openSwrDialog}>*/}
-            {/*    <InfoIcon />*/}
-            {/*</IconButton>*/}
-            {/*<Dialog open={state === displayDialog.SWR} onClose={closeDialog}>*/}
-            {/*    <DialogTitle>Safe Withdrawal Rate</DialogTitle>*/}
-            {/*    <DialogContent>A common rule-of-thumb for early retirement is that a retiree should be able to live on 4% of their portfolio at the point of retirement and then keep withdrawing that same amount (adjusted for inflation) every year afterwards. To be more conservative, this calculator uses a Safe Withdrawal Rate of 3.5%. <br /><br /> This toggle defers retirement up to three years, at which point if the target value is still not achieved, then the drawdown is recalculated.</DialogContent>*/}
-            {/*</Dialog>*/}
+            <IconButton onClick={openIsaBridgeDialog}>
+                <InfoIcon />
+            </IconButton>
+            <Dialog open={state === displayDialog.BRIDGE} onClose={closeDialog}>
+                <DialogTitle>Bridging the Gap</DialogTitle>
+                <DialogContent>Defer retirement until you have enough in your non-pension funds to support you until your pension becomes accessible.</DialogContent>
+            </Dialog>
         </div>
     </Container>
 }
