@@ -1,7 +1,7 @@
 import _ from "underscore";
 import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
 import { GetNormallyDistributedRandomNumber } from "./distribution";
-import { RetirementStrategy } from "./RetirementStrategy";
+import { getRetirementStrategy, RetirementStrategy } from "./RetirementStrategy";
 import { EARLY_PENSION_AGE } from "./constants";
 
 export interface PortfolioState {
@@ -13,6 +13,8 @@ export interface PortfolioState {
     deferredRetirementCounter: number,
     annualDrawdown: number,
     success: boolean,
+    targetAge: number,
+    targetDrawdown: number,
 }
 
 export default class SimulationRunner {
@@ -23,7 +25,8 @@ export default class SimulationRunner {
     readonly annualPensionContribution: number;
     readonly distributionData: RiskAppetite[];
     readonly retirementStrategy: RetirementStrategy;
-    // readonly targetAge: number;
+    readonly targetAge: number;
+    readonly targetDrawdown: number;
     readonly annualDrawdown: number;
     protected simulations: number;
 
@@ -40,11 +43,12 @@ export default class SimulationRunner {
         this.initialPensionValue = personalDetails.initialPension;
         this.annualPensionContribution = personalDetails.pensionContribution;
         this.annualDrawdown = query.targetDrawdown;
-        // this.targetAge = query.targetAge;
+        this.targetDrawdown = query.targetDrawdown;
+        this.targetAge = query.targetAge;
         this.distributionData = distributionData;
         this.simulations = 1_000;
 
-        this.retirementStrategy = new RetirementStrategy(query)
+        this.retirementStrategy = getRetirementStrategy(query)
     }
 
     Run = (): SimulationResults => {
@@ -78,6 +82,8 @@ export default class SimulationRunner {
             deferredRetirementCounter: 0,
             success: true,
             annualDrawdown: this.annualDrawdown,
+            targetAge: this.targetAge,
+            targetDrawdown: this.targetDrawdown,
         }
 
         const f = returns.reduce((acc: Array<PortfolioState>, interest: number) => {
@@ -153,7 +159,9 @@ export default class SimulationRunner {
             deferredRetirementCounter,
             age: age + 1,
             interest,
-            annualDrawdown
+            annualDrawdown,
+            targetAge: this.targetAge,
+            targetDrawdown: this.targetDrawdown
         }
     }
 }

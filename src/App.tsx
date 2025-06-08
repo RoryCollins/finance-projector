@@ -34,7 +34,7 @@ function App() {
       targetAge: 58,
       targetDrawdown: 20_000,
       deferInCrash: true,
-      deferUntilSwr: true,
+      bridgeTheGap: true,
     },
     model: [
       { name: "Stocks", model: { mean: 7, standardDeviation: 20 } },
