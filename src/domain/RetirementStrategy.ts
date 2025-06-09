@@ -2,7 +2,7 @@ import {EARLY_PENSION_AGE} from "./constants";
 import {StrategyQuery} from "./interfaces";
 
 export const getRetirementStrategy = (query: StrategyQuery): RetirementStrategy => {
-    let strategy: RetirementStrategy = new BasicRetirementStrategy(query.targetAge, query.targetDrawdown);
+    let strategy: RetirementStrategy = new BasicRetirementStrategy(query.targetAge);
     if (query.bridgeTheGap){
         strategy = new BridgeTheGapStrategyDecorator(strategy);
     }
@@ -85,7 +85,7 @@ class BridgeTheGapStrategyDecorator extends DeferredRetirementStrategyDecorator 
 }
 
 class BasicRetirementStrategy implements RetirementStrategy {
-    constructor(private readonly targetAge: number, private readonly targetDrawdown: number) {}
+    constructor(private readonly targetAge: number) {}
 
     updateRetirementState(portfolioState: RetirementQuery): RetirementResult {
         if (portfolioState.age >= this.targetAge) {
