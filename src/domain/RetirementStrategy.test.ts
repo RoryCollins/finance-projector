@@ -19,7 +19,6 @@ const state: PortfolioState = {
     success: false,
     annualDrawdown: query.targetDrawdown,
     targetAge: query.targetAge,
-    targetDrawdown: query.targetDrawdown,
 }
 
 it("retires when age reached", () => {

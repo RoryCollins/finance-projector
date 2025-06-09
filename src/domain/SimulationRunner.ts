@@ -1,20 +1,19 @@
 import _ from "underscore";
-import { RiskAppetite, SimulationData, SimulationResults } from "./interfaces";
-import { GetNormallyDistributedRandomNumber } from "./distribution";
-import { getRetirementStrategy, RetirementStrategy } from "./RetirementStrategy";
-import { EARLY_PENSION_AGE } from "./constants";
+import {RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
+import {GetNormallyDistributedRandomNumber} from "./distribution";
+import {getRetirementStrategy, RetirementStrategy} from "./RetirementStrategy";
+import {getInitialSimulationState, SimulationState } from "./SimulationState";
 
 export interface PortfolioState {
     age: number,
     isaValue: number,
     pensionValue: number,
-    interest: number,
+    interest: number, // TODO: should this be removed?
     retired: boolean,
     deferredRetirementCounter: number,
     annualDrawdown: number,
-    success: boolean,
-    targetAge: number,
-    targetDrawdown: number,
+    success?: boolean, // TODO: should this be replaced with a SimulationState?
+    targetAge: number, // TODO: should this be removed?
 }
 
 export default class SimulationRunner {
@@ -26,7 +25,6 @@ export default class SimulationRunner {
     readonly distributionData: RiskAppetite[];
     readonly retirementStrategy: RetirementStrategy;
     readonly targetAge: number;
-    readonly targetDrawdown: number;
     readonly annualDrawdown: number;
     protected simulations: number;
 
@@ -43,7 +41,6 @@ export default class SimulationRunner {
         this.initialPensionValue = personalDetails.initialPension;
         this.annualPensionContribution = personalDetails.pensionContribution;
         this.annualDrawdown = query.targetDrawdown;
-        this.targetDrawdown = query.targetDrawdown;
         this.targetAge = query.targetAge;
         this.distributionData = distributionData;
         this.simulations = 1_000;
@@ -52,11 +49,10 @@ export default class SimulationRunner {
     }
 
     Run = (): SimulationResults => {
-        const s = Array.from({ length: this.simulations }, () => this.OneScenario());
+        const s = Array.from({length: this.simulations}, () => this.OneScenario());
         const successRate = s.filter(it => it.success).length / this.simulations;
-        const meanDrawdown = s.map(it => it.annualDrawdown).reduce((a, b) => a + b, 0) / s.length
         const scenarios = s.map(it => it.vals);
-        const medianRetirementAge = this.age + s.map(it => it.retirementAge).sort()[s.length * .5]
+        const medianRetirementAge = s.map(it => it.retirementAge).sort()[s.length * .5]
         const t = _.zip(...scenarios).map(it => it.sort((a, b) => a - b))
         const annualData = t.map((year, i) => {
             return {
@@ -66,7 +62,7 @@ export default class SimulationRunner {
                 median: year[year.length * .5]
             }
         });
-        return { annualData, medianRetirementAge, successRate, drawdownAtRetirement: meanDrawdown };
+        return {annualData, medianRetirementAge, successRate, drawdownAtRetirement: this.annualDrawdown};
     }
 
     private OneScenario = (): { vals: number[], retirementAge: number, success: boolean, annualDrawdown: number } => {
@@ -83,24 +79,30 @@ export default class SimulationRunner {
             success: true,
             annualDrawdown: this.annualDrawdown,
             targetAge: this.targetAge,
-            targetDrawdown: this.targetDrawdown,
         }
 
-        const f = returns.reduce((acc: Array<PortfolioState>, interest: number) => {
-            let nextPortfolioState = acc[acc.length - 1];
-            return [...acc, this.progressYear({ ...nextPortfolioState, interest })]
-        }, [initialPortfolioState]);
+        const initialG : SimulationState = getInitialSimulationState(
+            this.retirementStrategy,
+            this.annualIsaContribution,
+            this.annualPensionContribution,
+            initialPortfolioState
+        );
+
+        const g =  returns.reduce((acc: {state: SimulationState, totalNetworth: Array<number>}, interest: number) => {
+            var newState = acc.state.progressYear(interest);
+            return {state: newState, totalNetworth: [...acc.totalNetworth, newState.portfolioState.isaValue + newState.portfolioState.pensionValue]};
+        }, {state: initialG, totalNetworth: [initialPortfolioState.pensionValue + initialPortfolioState.isaValue]});
 
         return {
-            vals: f.map(it => (it.isaValue + it.pensionValue)),
-            retirementAge: f.findIndex(d => d.retired) - 1,
-            success: f[f.length - 1].success,
-            annualDrawdown: f[f.length - 1].annualDrawdown!,
-        };
+            vals: g.totalNetworth,
+            retirementAge: g.state.portfolioState.summary?.retirementAge!,
+            success: g.state.portfolioState.summary?.success ?? true,
+            annualDrawdown: this.annualDrawdown
+        }
     }
 
     private getFiftyYearsOfReturns = (): number[] => {
-        return Array.from({ length: 50 }, (_, k) => this.getReturnForAge(this.age + k));
+        return Array.from({length: 50}, (_, k) => this.getReturnForAge(this.age + k));
     }
 
     private getReturnForAge = (age: number): number => {
@@ -109,59 +111,5 @@ export default class SimulationRunner {
             .at(-1)!.distribution
             .map(d => (d.percentage / 100) * (GetNormallyDistributedRandomNumber(d.model.mean, d.model.standardDeviation)))
             .reduce((sum, d) => sum + d, 0);
-    }
-
-    private progressYear = (state: PortfolioState): PortfolioState => {
-        if (!state.success) return state;
-        state = this.retirementStrategy.updateRetirementState(state);
-        let {
-            isaValue,
-            pensionValue,
-            interest,
-            retired,
-            age,
-            deferredRetirementCounter,
-            success,
-            annualDrawdown
-        } = state;
-
-        let nextIsaValue: number;
-        let nextPensionValue: number;
-
-        if (!retired) {
-            nextIsaValue = (isaValue + this.annualIsaContribution) * interest;
-            nextPensionValue = (pensionValue + this.annualPensionContribution) * interest;
-        } else {
-            //TODO: I don't like this. A RetiredPortfolioState would be nicer...
-            annualDrawdown = annualDrawdown!
-            if (age < EARLY_PENSION_AGE) {
-                success = isaValue >= annualDrawdown;
-                nextIsaValue = (isaValue - annualDrawdown) * interest;
-                nextPensionValue = pensionValue * interest;
-            } else {
-                success = (isaValue + pensionValue) >= annualDrawdown;
-                if (pensionValue < annualDrawdown) {
-                    let remainder = annualDrawdown - pensionValue;
-                    nextPensionValue = 0;
-                    nextIsaValue = (isaValue - remainder) * interest;
-                } else {
-                    nextPensionValue = (pensionValue - annualDrawdown) * interest;
-                    nextIsaValue = isaValue * interest;
-                }
-            }
-        }
-
-        return {
-            isaValue: nextIsaValue,
-            pensionValue: nextPensionValue,
-            retired,
-            success,
-            deferredRetirementCounter,
-            age: age + 1,
-            interest,
-            annualDrawdown,
-            targetAge: this.targetAge,
-            targetDrawdown: this.targetDrawdown
-        }
     }
 }
