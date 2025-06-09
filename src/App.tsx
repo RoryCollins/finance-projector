@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Stack, Typography } from '@mui/material';
 
-import SimulationRunner from './domain/SimulationRunner';
+import {SimulationRunner} from './domain/SimulationRunner';
 import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, RiskAppetiteView, SimulationResults, StatisticalModel } from './domain/interfaces';
 import Results from "./components/Results";
 import { PersonalDetailsForm } from "./components/PersonalDetailsForm";

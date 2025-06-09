@@ -9,6 +9,7 @@ interface PortfolioStateG {
     annualDrawdown: number,
     retired: boolean, //TODO: should this be removed?
     targetAge: number, // TODO: should this be removed?
+    netWorthHistory: number[],
     summary?: Summary,
 }
 
@@ -44,31 +45,33 @@ export abstract class SimulationState {
 }
 
 class FailedSimulationState extends SimulationState {
-    // 5. Failed, no progression.
+    constructor(protected retirementStrategy: RetirementStrategy,
+                protected annualIsaContribution: number,
+                protected annualPensionContribution: number,
+                public portfolioState: PortfolioStateG) {
+        super(retirementStrategy, annualIsaContribution, annualPensionContribution, portfolioState);
+        this.portfolioState.summary!.success = false;
+    }
+
     progressYear(interest: number): SimulationState {
         return this;
     }
 }
 
 class NonRetiredSimulationState extends SimulationState {
-    // 1. Not retired, check retirementStrategy and continue contributing
     progressYear(interest: number): SimulationState {
-        let {retired, deferredRetirementCounter} = this.retirementStrategy.updateRetirementState({...this.portfolioState, interest });
+        const {
+            retired,
+            deferredRetirementCounter
+        } = this.retirementStrategy.updateRetirementState({...this.portfolioState, interest});
 
         if (retired) {
-            var newlyRetiredState = new RetiredSimulationState(
+            const newlyRetiredState = new RetiredSimulationState(
                 this.retirementStrategy,
                 this.annualIsaContribution,
                 this.annualPensionContribution,
-                {
-                    ...this.portfolioState,
-                    summary: {
-                        retirementAge: this.portfolioState.age,
-                        isaAtRetirement: this.portfolioState.isaValue,
-                        pensionAtRetirement: this.portfolioState.pensionValue,
-                        success: true,
-                    }
-                });
+                this.portfolioState);
+
             return newlyRetiredState.progressYear(interest);
         }
 
@@ -82,6 +85,7 @@ class NonRetiredSimulationState extends SimulationState {
             {
                 ...this.portfolioState,
                 age: this.portfolioState.age + 1,
+                netWorthHistory: [...this.portfolioState.netWorthHistory, this.portfolioState.isaValue + this.portfolioState.pensionValue],
                 isaValue: nextIsaValue,
                 pensionValue: nextPensionValue,
                 deferredRetirementCounter
@@ -91,8 +95,22 @@ class NonRetiredSimulationState extends SimulationState {
 
 class RetiredSimulationState extends SimulationState {
 
+    constructor(protected retirementStrategy: RetirementStrategy,
+                protected annualIsaContribution: number,
+                protected annualPensionContribution: number,
+                public portfolioState: PortfolioStateG) {
+        super(retirementStrategy, annualIsaContribution, annualPensionContribution, portfolioState);
+
+        this.portfolioState.summary = this.portfolioState.summary ?? {
+            retirementAge: this.portfolioState.age,
+            isaAtRetirement: this.portfolioState.isaValue,
+            pensionAtRetirement: this.portfolioState.pensionValue,
+            success: true
+        };
+    }
+
     progressYear(interest: number): SimulationState {
-        // 2. Retired, but not old enough for pension, drawdown from ISA
+        // 2. Retired, but pension is inaccessible, drawdown from ISA
         let {isaValue, pensionValue, annualDrawdown} = this.portfolioState;
         let nextIsaValue, nextPensionValue;
 
@@ -102,7 +120,12 @@ class RetiredSimulationState extends SimulationState {
                     this.retirementStrategy,
                     this.annualIsaContribution,
                     this.annualPensionContribution,
-                    this.portfolioState);
+                    {
+                        ...this.portfolioState,
+                        age: this.portfolioState.age + 1,
+                        netWorthHistory: [...this.portfolioState.netWorthHistory, 0],
+                        summary: {...this.portfolioState.summary!, success: false}
+                    });
             }
 
             nextIsaValue = (isaValue - annualDrawdown) * interest;
@@ -112,23 +135,30 @@ class RetiredSimulationState extends SimulationState {
                 this.retirementStrategy,
                 this.annualIsaContribution,
                 this.annualPensionContribution,
-                {...this.portfolioState,
+                {
+                    ...this.portfolioState,
                     age: this.portfolioState.age + 1,
+                    netWorthHistory: [...this.portfolioState.netWorthHistory, nextIsaValue + nextPensionValue],
                     isaValue: nextIsaValue,
                     pensionValue: nextPensionValue,
                 });
         }
 
         // 4. Retired, but not enough in ISA or pension to cover drawdown, fail
-        if ((isaValue + pensionValue) < annualDrawdown){
+        if ((isaValue + pensionValue) < annualDrawdown) {
             return new FailedSimulationState(
                 this.retirementStrategy,
                 this.annualIsaContribution,
                 this.annualPensionContribution,
-                this.portfolioState);
+                {
+                    ...this.portfolioState,
+                    age: this.portfolioState.age + 1,
+                    netWorthHistory: [...this.portfolioState.netWorthHistory, 0],
+                    summary: {...this.portfolioState.summary!, success: false}
+                });
         }
 
-        // 3. Retired, old enough for pension, drawdown from both ISA and pension
+        // 3. Retired, pension is accessible, drawdown from both ISA and pension
         if (pensionValue < annualDrawdown) {
             let remainder = annualDrawdown - pensionValue;
             nextPensionValue = 0;
@@ -141,8 +171,10 @@ class RetiredSimulationState extends SimulationState {
             this.retirementStrategy,
             this.annualIsaContribution,
             this.annualPensionContribution,
-            {...this.portfolioState,
+            {
+                ...this.portfolioState,
                 age: this.portfolioState.age + 1,
+                netWorthHistory: [...this.portfolioState.netWorthHistory, nextIsaValue + nextPensionValue],
                 isaValue: nextIsaValue,
                 pensionValue: nextPensionValue,
             });

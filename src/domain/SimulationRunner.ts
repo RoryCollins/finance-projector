@@ -16,7 +16,7 @@ export interface PortfolioState {
     targetAge: number, // TODO: should this be removed?
 }
 
-export default class SimulationRunner {
+export class SimulationRunner {
     readonly age: number;
     readonly initialIsaValue: number;
     readonly annualIsaContribution: number;
@@ -81,22 +81,21 @@ export default class SimulationRunner {
             targetAge: this.targetAge,
         }
 
-        const initialG : SimulationState = getInitialSimulationState(
+        const initialG: SimulationState = getInitialSimulationState(
             this.retirementStrategy,
             this.annualIsaContribution,
             this.annualPensionContribution,
-            initialPortfolioState
+            {...initialPortfolioState, netWorthHistory: []},
         );
 
-        const g =  returns.reduce((acc: {state: SimulationState, totalNetworth: Array<number>}, interest: number) => {
-            var newState = acc.state.progressYear(interest);
-            return {state: newState, totalNetworth: [...acc.totalNetworth, newState.portfolioState.isaValue + newState.portfolioState.pensionValue]};
-        }, {state: initialG, totalNetworth: [initialPortfolioState.pensionValue + initialPortfolioState.isaValue]});
+        const g = returns.reduce((acc: SimulationState, interest: number) => {
+            return acc.progressYear(interest);
+        }, initialG);
 
         return {
-            vals: g.totalNetworth,
-            retirementAge: g.state.portfolioState.summary?.retirementAge!,
-            success: g.state.portfolioState.summary?.success ?? true,
+            vals: g.portfolioState.netWorthHistory,
+            retirementAge: g.portfolioState.summary?.retirementAge!,
+            success: g.portfolioState.summary?.success ?? true,
             annualDrawdown: this.annualDrawdown
         }
     }
