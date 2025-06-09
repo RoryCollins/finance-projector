@@ -2,7 +2,7 @@ import _ from "underscore";
 import {PortfolioState, RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
 import {GetNormallyDistributedRandomNumber} from "./distribution";
 import {getRetirementStrategy, RetirementStrategy} from "./RetirementStrategy";
-import {getInitialSimulationState, SimulationState } from "./SimulationState";
+import {NonRetiredSimulationState, SimulationState} from "./SimulationState";
 
 export class SimulationRunner {
     readonly age: number;
@@ -66,21 +66,21 @@ export class SimulationRunner {
             netWorthHistory: []
         }
 
-        const initialG: SimulationState = getInitialSimulationState(
+        const initialSimulationState: SimulationState = new NonRetiredSimulationState(
             this.retirementStrategy,
             this.annualIsaContribution,
             this.annualPensionContribution,
             initialPortfolioState
         );
 
-        const g = returns.reduce((acc: SimulationState, interest: number) => {
+        const finalState = returns.reduce((acc: SimulationState, interest: number) => {
             return acc.progressYear(interest);
-        }, initialG);
+        }, initialSimulationState).portfolioState;
 
         return {
-            vals: g.portfolioState.netWorthHistory,
-            retirementAge: g.portfolioState.summary?.retirementAge!,
-            success: g.portfolioState.summary?.success ?? true,
+            vals: finalState.netWorthHistory,
+            retirementAge: finalState.summary?.retirementAge!,
+            success: finalState.summary?.success!,
             annualDrawdown: this.annualDrawdown
         }
     }
