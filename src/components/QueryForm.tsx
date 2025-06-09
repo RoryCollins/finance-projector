@@ -1,11 +1,11 @@
 import { Container, TextField, InputAdornment, FormControlLabel, Switch, IconButton, Dialog, DialogTitle, DialogContent } from "@mui/material";
-import { QueryDetails } from "../domain/interfaces";
+import { StrategyQuery } from "../domain/interfaces";
 import InfoIcon from '@mui/icons-material/Info';
 import { useState } from "react";
 
 enum displayDialog { SEQUENCE_RISK, BRIDGE, NONE }
 
-export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetails }) => {
+export const QueryForm = ({ onChange, data }: { onChange: any, data: StrategyQuery }) => {
     const [state, setState] = useState<displayDialog>(displayDialog.NONE);
     const openSequenceRiskDialog = () => {
         setState(displayDialog.SEQUENCE_RISK);
@@ -19,7 +19,7 @@ export const QueryForm = ({ onChange, data }: { onChange: any, data: QueryDetail
         setState(displayDialog.NONE);
     }
 
-    const handleChange = (newState: QueryDetails) => {
+    const handleChange = (newState: StrategyQuery) => {
         onChange(newState);
     }
     return <Container>

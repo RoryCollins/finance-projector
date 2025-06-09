@@ -1,20 +1,8 @@
 import _ from "underscore";
-import {RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
+import {PortfolioState, RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
 import {GetNormallyDistributedRandomNumber} from "./distribution";
 import {getRetirementStrategy, RetirementStrategy} from "./RetirementStrategy";
 import {getInitialSimulationState, SimulationState } from "./SimulationState";
-
-export interface PortfolioState {
-    age: number,
-    isaValue: number,
-    pensionValue: number,
-    interest: number, // TODO: should this be removed?
-    retired: boolean,
-    deferredRetirementCounter: number,
-    annualDrawdown: number,
-    success?: boolean, // TODO: should this be replaced with a SimulationState?
-    targetAge: number, // TODO: should this be removed?
-}
 
 export class SimulationRunner {
     readonly age: number;
@@ -73,19 +61,16 @@ export class SimulationRunner {
             age: this.age,
             isaValue: this.initialIsaValue,
             pensionValue: this.initialPensionValue,
-            interest: 0,
-            retired: false,
             deferredRetirementCounter: 0,
-            success: true,
             annualDrawdown: this.annualDrawdown,
-            targetAge: this.targetAge,
+            netWorthHistory: []
         }
 
         const initialG: SimulationState = getInitialSimulationState(
             this.retirementStrategy,
             this.annualIsaContribution,
             this.annualPensionContribution,
-            {...initialPortfolioState, netWorthHistory: []},
+            initialPortfolioState
         );
 
         const g = returns.reduce((acc: SimulationState, interest: number) => {

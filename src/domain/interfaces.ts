@@ -1,6 +1,6 @@
 export interface SimulationData {
     personalDetails: PersonalDetails,
-    query: QueryDetails,
+    query: StrategyQuery,
 }
 
 export interface RiskAppetiteView {
@@ -44,15 +44,31 @@ export interface PersonalDetails {
   pensionContribution: number,
 }
 
-export interface QueryDetails {
+export interface StrategyQuery {
     targetAge: number,
     targetDrawdown: number,
     deferInCrash: boolean,
     bridgeTheGap: boolean,
-    // deferUntilSwr: boolean,
 }
 
 export interface ModelDetails {
     name: string,
     model: StatisticalModel
+}
+
+export interface PortfolioState {
+    age: number,
+    isaValue: number,
+    pensionValue: number,
+    deferredRetirementCounter: number,
+    annualDrawdown: number,
+    netWorthHistory: number[],
+    summary?: Summary,
+}
+
+interface Summary {
+    retirementAge: number;
+    isaAtRetirement: number;
+    pensionAtRetirement: number;
+    success: boolean;
 }

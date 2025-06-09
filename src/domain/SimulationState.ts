@@ -1,29 +1,11 @@
 import {RetirementStrategy} from "./RetirementStrategy";
 import {EARLY_PENSION_AGE} from "./constants";
-
-interface PortfolioStateG {
-    age: number,
-    isaValue: number,
-    pensionValue: number,
-    deferredRetirementCounter: number,
-    annualDrawdown: number,
-    retired: boolean, //TODO: should this be removed?
-    targetAge: number, // TODO: should this be removed?
-    netWorthHistory: number[],
-    summary?: Summary,
-}
-
-interface Summary {
-    retirementAge: number;
-    isaAtRetirement: number;
-    pensionAtRetirement: number;
-    success: boolean;
-}
+import {PortfolioState} from "./interfaces";
 
 export function getInitialSimulationState(retirementStrategy: RetirementStrategy,
                                           annualIsaContribution: number,
                                           annualPensionContribution: number,
-                                          portfolioState: PortfolioStateG): SimulationState {
+                                          portfolioState: PortfolioState): SimulationState {
     return new NonRetiredSimulationState(
         retirementStrategy,
         annualIsaContribution,
@@ -37,7 +19,7 @@ export abstract class SimulationState {
         protected retirementStrategy: RetirementStrategy,
         protected annualIsaContribution: number,
         protected annualPensionContribution: number,
-        public portfolioState: PortfolioStateG) {
+        public portfolioState: PortfolioState) {
     }
 
     abstract progressYear(interest: number): SimulationState;
@@ -47,7 +29,7 @@ class FailedSimulationState extends SimulationState {
     constructor(protected retirementStrategy: RetirementStrategy,
                 protected annualIsaContribution: number,
                 protected annualPensionContribution: number,
-                public portfolioState: PortfolioStateG) {
+                public portfolioState: PortfolioState) {
         super(retirementStrategy, annualIsaContribution, annualPensionContribution, portfolioState);
         this.portfolioState.summary!.success = false;
     }
@@ -97,7 +79,7 @@ class RetiredSimulationState extends SimulationState {
     constructor(protected retirementStrategy: RetirementStrategy,
                 protected annualIsaContribution: number,
                 protected annualPensionContribution: number,
-                public portfolioState: PortfolioStateG) {
+                public portfolioState: PortfolioState) {
         super(retirementStrategy, annualIsaContribution, annualPensionContribution, portfolioState);
 
         this.portfolioState.summary = this.portfolioState.summary ?? {

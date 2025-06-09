@@ -3,7 +3,7 @@ import './App.css';
 import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Stack, Typography } from '@mui/material';
 
 import {SimulationRunner} from './domain/SimulationRunner';
-import { ModelDetails, PersonalDetails, QueryDetails, RiskAppetite, RiskAppetiteView, SimulationResults, StatisticalModel } from './domain/interfaces';
+import { ModelDetails, PersonalDetails, StrategyQuery, RiskAppetite, RiskAppetiteView, SimulationResults, StatisticalModel } from './domain/interfaces';
 import Results from "./components/Results";
 import { PersonalDetailsForm } from "./components/PersonalDetailsForm";
 import { QueryForm } from './components/QueryForm';
@@ -17,7 +17,7 @@ interface StateData {
   personalDetails: PersonalDetails,
   model: ModelDetails[],
   riskAppetite: RiskAppetiteView[]
-  queryDetails: QueryDetails
+  queryDetails: StrategyQuery
 }
 
 function App() {
@@ -105,7 +105,7 @@ function App() {
               </AccordionSummary>
               <AccordionDetails>
                 <PersonalDetailsForm data={data.personalDetails} onChange={(newState: PersonalDetails) => setData({ ...data, personalDetails: newState })} />
-                <QueryForm data={data.queryDetails} onChange={(newState: QueryDetails) => setData({ ...data, queryDetails: newState })} />
+                <QueryForm data={data.queryDetails} onChange={(newState: StrategyQuery) => setData({ ...data, queryDetails: newState })} />
               </AccordionDetails>
             </Accordion>
 

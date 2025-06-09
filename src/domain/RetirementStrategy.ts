@@ -1,21 +1,34 @@
 import {EARLY_PENSION_AGE} from "./constants";
-import {QueryDetails} from "./interfaces";
-import {PortfolioState} from "./SimulationRunner";
+import {StrategyQuery} from "./interfaces";
 
-export const getRetirementStrategy = (query: QueryDetails): RetirementStrategy => {
-    let strategy: RetirementStrategy = new BasicRetirementStrategy();
+export const getRetirementStrategy = (query: StrategyQuery): RetirementStrategy => {
+    let strategy: RetirementStrategy = new BasicRetirementStrategy(query.targetAge, query.targetDrawdown);
     if (query.bridgeTheGap){
-        strategy = new BridgeTheGapStrategy(strategy);
+        strategy = new BridgeTheGapStrategyDecorator(strategy);
     }
     if (query.deferInCrash) {
-        strategy = new DeferInCrashStrategy(strategy);
+        strategy = new DeferInCrashStrategyDecorator(strategy);
     }
 
     return strategy;
 }
 
+export interface RetirementQuery {
+    age: number;
+    isaValue: number;
+    pensionValue: number;
+    deferredRetirementCounter: number;
+    annualDrawdown: number;
+    interest: number;
+}
+
+export interface RetirementResult {
+    retired: boolean;
+    deferredRetirementCounter: number;
+}
+
 export interface RetirementStrategy {
-    updateRetirementState: (portfolioState: PortfolioState) => PortfolioState;
+    updateRetirementState: (portfolioState: RetirementQuery) => RetirementResult;
 }
 
 abstract class DeferredRetirementStrategyDecorator implements RetirementStrategy {
@@ -26,11 +39,7 @@ abstract class DeferredRetirementStrategyDecorator implements RetirementStrategy
         this.strategy = strategy;
     }
 
-    updateRetirementState(portfolioState: PortfolioState): PortfolioState {
-        if (portfolioState.age < portfolioState.targetAge) {
-            return portfolioState;
-        }
-
+    updateRetirementState(portfolioState: RetirementQuery): RetirementResult {
         // Check the inner strategy first and return if strategy failed
         const innerState = this.strategy.updateRetirementState(portfolioState);
         if (!innerState.retired) {
@@ -45,17 +54,17 @@ abstract class DeferredRetirementStrategyDecorator implements RetirementStrategy
         }
 
         return {
-            ...portfolioState,
+            retired: false,
             deferredRetirementCounter: portfolioState.deferredRetirementCounter + 1,
         }
     }
 
-    abstract canRetire(state: PortfolioState): boolean;
+    abstract canRetire(state: RetirementQuery): boolean;
 
 }
 
-class DeferInCrashStrategy extends DeferredRetirementStrategyDecorator {
-    canRetire(portfolioState: PortfolioState): boolean {
+class DeferInCrashStrategyDecorator extends DeferredRetirementStrategyDecorator {
+    canRetire(portfolioState: RetirementQuery): boolean {
         return this.maxDeferralReached(portfolioState.deferredRetirementCounter)
             || portfolioState.interest >= 1;
     }
@@ -65,8 +74,8 @@ class DeferInCrashStrategy extends DeferredRetirementStrategyDecorator {
     }
 }
 
-class BridgeTheGapStrategy extends DeferredRetirementStrategyDecorator {
-    canRetire(portfolioState: PortfolioState): boolean {
+class BridgeTheGapStrategyDecorator extends DeferredRetirementStrategyDecorator {
+    canRetire(portfolioState: RetirementQuery): boolean {
         if (portfolioState.age > EARLY_PENSION_AGE)
             return true;
 
@@ -76,13 +85,15 @@ class BridgeTheGapStrategy extends DeferredRetirementStrategyDecorator {
 }
 
 class BasicRetirementStrategy implements RetirementStrategy {
-    updateRetirementState = (portfolioState: PortfolioState): PortfolioState => {
-        if (portfolioState.age >= portfolioState.targetAge){
+    constructor(private readonly targetAge: number, private readonly targetDrawdown: number) {}
+
+    updateRetirementState(portfolioState: RetirementQuery): RetirementResult {
+        if (portfolioState.age >= this.targetAge) {
             return {
-                ...portfolioState,
-                retired: true
+                retired: true,
+                deferredRetirementCounter: portfolioState.deferredRetirementCounter,
             };
         }
-        return portfolioState;
+        return {retired: false, deferredRetirementCounter: 0}
     }
 }
