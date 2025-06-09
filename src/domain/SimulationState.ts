@@ -30,7 +30,6 @@ export function getInitialSimulationState(retirementStrategy: RetirementStrategy
         annualPensionContribution,
         portfolioState
     )
-
 }
 
 export abstract class SimulationState {
@@ -110,7 +109,7 @@ class RetiredSimulationState extends SimulationState {
     }
 
     progressYear(interest: number): SimulationState {
-        // 2. Retired, but pension is inaccessible, drawdown from ISA
+        // Retired, but pension is inaccessible, drawdown from ISA
         let {isaValue, pensionValue, annualDrawdown} = this.portfolioState;
         let nextIsaValue, nextPensionValue;
 
@@ -124,7 +123,6 @@ class RetiredSimulationState extends SimulationState {
                         ...this.portfolioState,
                         age: this.portfolioState.age + 1,
                         netWorthHistory: [...this.portfolioState.netWorthHistory, 0],
-                        summary: {...this.portfolioState.summary!, success: false}
                     });
             }
 
@@ -144,7 +142,7 @@ class RetiredSimulationState extends SimulationState {
                 });
         }
 
-        // 4. Retired, but not enough in ISA or pension to cover drawdown, fail
+        // Retired, but not enough in ISA or pension to cover drawdown, fail
         if ((isaValue + pensionValue) < annualDrawdown) {
             return new FailedSimulationState(
                 this.retirementStrategy,
@@ -154,11 +152,10 @@ class RetiredSimulationState extends SimulationState {
                     ...this.portfolioState,
                     age: this.portfolioState.age + 1,
                     netWorthHistory: [...this.portfolioState.netWorthHistory, 0],
-                    summary: {...this.portfolioState.summary!, success: false}
                 });
         }
 
-        // 3. Retired, pension is accessible, drawdown from both ISA and pension
+        // Retired, pension is accessible, drawdown from both ISA and pension
         if (pensionValue < annualDrawdown) {
             let remainder = annualDrawdown - pensionValue;
             nextPensionValue = 0;
