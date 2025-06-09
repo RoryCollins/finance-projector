@@ -1,6 +1,6 @@
 import { EARLY_PENSION_AGE } from "./constants";
 import { RiskAppetite, SimulationData, StatisticalModel } from "./interfaces";
-import SimulationRunner from "./SimulationRunner"
+import {SimulationRunner} from "./SimulationRunner"
 
 class TestSimulationRunner extends SimulationRunner {
     constructor(
@@ -97,6 +97,15 @@ it("Success rate is one with adequate savings", () => {
     });
     const { successRate } = runner.Run();
     expect(successRate).toEqual(1);
+})
+
+it("Success rate is zero without adequate savings", () => {
+    const runner = new TestSimulationRunner({
+        personalDetails: { ...A_Simulation.personalDetails, age: 37, initialPension: 10_000 },
+        query: { ...A_Simulation.query, targetDrawdown: 50_000, targetAge: 40 }
+    });
+    const { successRate } = runner.Run();
+    expect(successRate).toEqual(0);
 })
 
 it("Risk appetite affects returns", () => {
