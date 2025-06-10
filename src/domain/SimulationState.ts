@@ -25,6 +25,8 @@ class FailedSimulationState extends SimulationState {
     }
 
     progressYear(interest: number): SimulationState {
+        this.portfolioState.age += 1;
+        this.portfolioState.netWorthHistory = [...this.portfolioState.netWorthHistory, 0];
         return this;
     }
 }

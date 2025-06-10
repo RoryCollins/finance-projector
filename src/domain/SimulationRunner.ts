@@ -37,10 +37,10 @@ export class SimulationRunner {
     }
 
     Run = (): SimulationResults => {
-        const s = Array.from({length: this.simulations}, () => this.OneScenario());
-        const successRate = s.filter(it => it.success).length / this.simulations;
-        const scenarios = s.map(it => it.vals);
-        const medianRetirementAge = s.map(it => it.retirementAge).sort()[s.length * .5]
+        const rawResults = Array.from({length: this.simulations}, () => this.OneScenario());
+        const successRate = rawResults.filter(it => it.success).length / this.simulations;
+        const scenarios = rawResults.map(it => it.vals);
+        const medianRetirementAge = rawResults.map(it => it.retirementAge).sort()[rawResults.length * .5]
         const t = _.zip(...scenarios).map(it => it.sort((a, b) => a - b))
         const annualData = t.map((year, i) => {
             return {
