@@ -1,7 +1,7 @@
 import _ from "underscore";
 import {PortfolioState, RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
 import {GetNormallyDistributedRandomNumber} from "./distribution";
-import {getRetirementStrategy, RetirementStrategy} from "./RetirementStrategy";
+import {getRetirementStrategy, RetirementStrategy} from "./retirement/RetirementStrategy";
 import {NonRetiredSimulationState, SimulationState} from "./SimulationState";
 
 export class SimulationRunner {

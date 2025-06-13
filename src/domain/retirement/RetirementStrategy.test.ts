@@ -1,4 +1,4 @@
-import { StrategyQuery } from "./interfaces";
+import { StrategyQuery } from "../interfaces";
 import { getRetirementStrategy, RetirementQuery } from "./RetirementStrategy";
 
 const strategyQuery: StrategyQuery = {

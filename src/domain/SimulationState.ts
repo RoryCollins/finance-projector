@@ -1,4 +1,4 @@
-import {RetirementStrategy} from "./RetirementStrategy";
+import {RetirementStrategy} from "./retirement/RetirementStrategy";
 import {EARLY_PENSION_AGE} from "./constants";
 import {PortfolioState} from "./interfaces";
 
