@@ -1,6 +1,7 @@
 import {StrategyQuery} from "../interfaces";
 import {DeferInCrashStrategyDecorator} from "./DeferInCrashStrategyDecorator";
 import {BridgeTheGapStrategyDecorator} from "./BridgeTheGapStrategyDecorator";
+import {BasicRetirementStrategy} from "./BasicRetirementStrategy";
 
 export const getRetirementStrategy = (query: StrategyQuery): RetirementStrategy => {
     let strategy: RetirementStrategy = new BasicRetirementStrategy(query.targetAge);
@@ -30,18 +31,4 @@ export interface RetirementResult {
 
 export interface RetirementStrategy {
     updateRetirementState: (portfolioState: RetirementQuery) => RetirementResult;
-}
-
-class BasicRetirementStrategy implements RetirementStrategy {
-    constructor(private readonly targetAge: number) {}
-
-    updateRetirementState(portfolioState: RetirementQuery): RetirementResult {
-        if (portfolioState.age >= this.targetAge) {
-            return {
-                retired: true,
-                deferredRetirementCounter: portfolioState.deferredRetirementCounter,
-            };
-        }
-        return {retired: false, deferredRetirementCounter: 0}
-    }
 }
