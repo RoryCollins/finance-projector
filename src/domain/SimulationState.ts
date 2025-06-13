@@ -1,24 +1,14 @@
-import {RetirementStrategy} from "./RetirementStrategy";
+import {RetirementStrategy} from "./retirement/RetirementStrategy";
 import {EARLY_PENSION_AGE} from "./constants";
 import {PortfolioState} from "./interfaces";
 
-export function getInitialSimulationState(retirementStrategy: RetirementStrategy,
-                                          annualIsaContribution: number,
-                                          annualPensionContribution: number,
-                                          portfolioState: PortfolioState): SimulationState {
-    return new NonRetiredSimulationState(
-        retirementStrategy,
-        annualIsaContribution,
-        annualPensionContribution,
-        portfolioState
-    )
-}
-
 export abstract class SimulationState {
     constructor(
+        // these three are only used for the non retired state...
         protected retirementStrategy: RetirementStrategy,
         protected annualIsaContribution: number,
         protected annualPensionContribution: number,
+        //
         public portfolioState: PortfolioState) {
     }
 
@@ -35,11 +25,13 @@ class FailedSimulationState extends SimulationState {
     }
 
     progressYear(interest: number): SimulationState {
+        this.portfolioState.age += 1;
+        this.portfolioState.netWorthHistory = [...this.portfolioState.netWorthHistory, 0];
         return this;
     }
 }
 
-class NonRetiredSimulationState extends SimulationState {
+export class NonRetiredSimulationState extends SimulationState {
     progressYear(interest: number): SimulationState {
         const {
             retired,

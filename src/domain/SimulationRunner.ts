@@ -1,8 +1,8 @@
 import _ from "underscore";
 import {PortfolioState, RiskAppetite, SimulationData, SimulationResults} from "./interfaces";
 import {GetNormallyDistributedRandomNumber} from "./distribution";
-import {getRetirementStrategy, RetirementStrategy} from "./RetirementStrategy";
-import {getInitialSimulationState, SimulationState } from "./SimulationState";
+import {getRetirementStrategy, RetirementStrategy} from "./retirement/RetirementStrategy";
+import {NonRetiredSimulationState, SimulationState} from "./SimulationState";
 
 export class SimulationRunner {
     readonly age: number;
@@ -37,10 +37,10 @@ export class SimulationRunner {
     }
 
     Run = (): SimulationResults => {
-        const s = Array.from({length: this.simulations}, () => this.OneScenario());
-        const successRate = s.filter(it => it.success).length / this.simulations;
-        const scenarios = s.map(it => it.vals);
-        const medianRetirementAge = s.map(it => it.retirementAge).sort()[s.length * .5]
+        const rawResults = Array.from({length: this.simulations}, () => this.OneScenario());
+        const successRate = rawResults.filter(it => it.success).length / this.simulations;
+        const scenarios = rawResults.map(it => it.vals);
+        const medianRetirementAge = rawResults.map(it => it.retirementAge).sort()[rawResults.length * .5]
         const t = _.zip(...scenarios).map(it => it.sort((a, b) => a - b))
         const annualData = t.map((year, i) => {
             return {
@@ -66,21 +66,21 @@ export class SimulationRunner {
             netWorthHistory: []
         }
 
-        const initialG: SimulationState = getInitialSimulationState(
+        const initialSimulationState: SimulationState = new NonRetiredSimulationState(
             this.retirementStrategy,
             this.annualIsaContribution,
             this.annualPensionContribution,
             initialPortfolioState
         );
 
-        const g = returns.reduce((acc: SimulationState, interest: number) => {
+        const finalState = returns.reduce((acc: SimulationState, interest: number) => {
             return acc.progressYear(interest);
-        }, initialG);
+        }, initialSimulationState).portfolioState;
 
         return {
-            vals: g.portfolioState.netWorthHistory,
-            retirementAge: g.portfolioState.summary?.retirementAge!,
-            success: g.portfolioState.summary?.success ?? true,
+            vals: finalState.netWorthHistory,
+            retirementAge: finalState.summary?.retirementAge!,
+            success: finalState.summary?.success!,
             annualDrawdown: this.annualDrawdown
         }
     }
